@@ -1,0 +1,410 @@
+/* ════════════════════════════════════════════════════════════════
+   LANDING PAGE — bold/dark direction, executed deliberately:
+   ink-navy (not true black), two semantic accents (not one
+   decorative pop), signature element is the product's own mechanism
+   (annotated resume) rather than an abstract gradient blob.
+   ════════════════════════════════════════════════════════════════ */
+
+.noise-overlay{
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ── NAV ── */
+.nav{
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: rgba(247,248,251,0.72);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-soft);
+}
+.nav-inner{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+}
+.nav-brand{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink);
+}
+.nav-brand-mark{ color: var(--signal); font-size: 13px; }
+.nav-brand-accent{ color: var(--signal); }
+
+.nav-links{
+  display: flex;
+  align-items: center;
+  gap: var(--sp-6);
+}
+.nav-link{
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--muted);
+}
+.nav-link-disabled{ cursor: default; }
+
+.soon-pill{
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  padding: 2px 7px;
+  border-radius: 100px;
+}
+.soon-pill-inline{ margin-left: 10px; }
+
+@media (max-width: 780px){
+  .nav-links{ display: none; }
+}
+
+/* ── HERO ── */
+.hero{
+  position: relative;
+  padding: var(--sp-9) 0 var(--sp-8);
+  overflow: hidden;
+}
+
+/* one restrained ambient wash behind the copy column — not a blob
+   sitting on top of content, sits low in z-order, very low opacity */
+.hero::before{
+  content: '';
+  position: absolute;
+  top: -180px;
+  left: -220px;
+  width: 640px;
+  height: 640px;
+  background: radial-gradient(circle, rgba(61,214,163,0.14) 0%, rgba(61,214,163,0) 68%);
+  pointer-events: none;
+}
+.hero::after{
+  content: '';
+  position: absolute;
+  top: 60px;
+  right: -260px;
+  width: 560px;
+  height: 560px;
+  background: radial-gradient(circle, rgba(91,140,255,0.10) 0%, rgba(91,140,255,0) 68%);
+  pointer-events: none;
+}
+
+.hero-inner{
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 460px) minmax(0, 1fr);
+  gap: var(--sp-8);
+  align-items: center;
+}
+
+.eyebrow{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--signal);
+  margin-bottom: var(--sp-5);
+  opacity: 0;
+  animation: fadeUp 0.6s var(--ease) 0.05s forwards;
+}
+.eyebrow-dot{
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--signal);
+  box-shadow: 0 0 0 3px var(--signal-wash);
+}
+
+.hero-title{
+  font-size: clamp(38px, 5.2vw, 60px);
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  opacity: 0;
+  animation: fadeUp 0.7s var(--ease) 0.12s forwards;
+}
+
+.hero-attribution{
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: var(--sp-2);
+  padding-left: 2px;
+  opacity: 0;
+  animation: fadeUp 0.7s var(--ease) 0.2s forwards;
+}
+
+.hero-sub{
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  max-width: 44ch;
+  margin-top: var(--sp-5);
+  opacity: 0;
+  animation: fadeUp 0.7s var(--ease) 0.28s forwards;
+}
+
+.hero-actions{
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  margin-top: var(--sp-6);
+  flex-wrap: wrap;
+  opacity: 0;
+  animation: fadeUp 0.7s var(--ease) 0.36s forwards;
+}
+
+.btn-lg{
+  padding: 14px 24px;
+  font-size: 15px;
+  border-radius: var(--radius-md);
+}
+.btn-arrow{
+  transition: transform 0.2s var(--ease);
+}
+.btn-primary:hover .btn-arrow{ transform: translateX(3px); }
+
+.hero-microcopy{
+  font-size: 12.5px;
+  color: var(--muted);
+  margin-top: var(--sp-4);
+  opacity: 0;
+  animation: fadeUp 0.7s var(--ease) 0.42s forwards;
+}
+
+@keyframes fadeUp{
+  from{ opacity: 0; transform: translateY(10px); }
+  to{ opacity: 1; transform: translateY(0); }
+}
+
+/* ── SIGNATURE ELEMENT: annotated resume mock ── */
+.hero-visual{
+  position: relative;
+  display: flex;
+  justify-content: center;
+  opacity: 0;
+  animation: fadeUp 0.8s var(--ease) 0.3s forwards;
+}
+
+.doc-mock{
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  /* explicit padding, not percentage math, is what keeps the floating
+     annotations clear of the card on every viewport — the card tilts
+     in 3D but the annotations sit in this flat, untransformed layer */
+  padding: 46px 64px;
+}
+
+.doc-mock-page{
+  position: relative;
+  z-index: 2;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 30px 28px;
+  transform: perspective(1400px) rotateY(-3deg);
+}
+
+.doc-mock-name{
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.doc-mock-title{
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--signal);
+  margin-top: 2px;
+}
+.doc-mock-contact{
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--muted);
+  margin-top: 8px;
+}
+
+.doc-mock-section{
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 5px;
+  margin: 20px 0 10px;
+}
+
+.doc-mock-line{
+  height: 7px;
+  border-radius: 3px;
+  background: var(--border);
+  margin-bottom: 7px;
+}
+.doc-mock-line.w-100{ width: 100%; }
+.doc-mock-line.w-96{ width: 96%; }
+.doc-mock-line.w-92{ width: 92%; }
+.doc-mock-line.w-80{ width: 80%; }
+.doc-mock-line.w-70{ width: 70%; }
+.doc-mock-line.w-45{ width: 45%; }
+.doc-mock-line.w-25{ width: 25%; }
+.doc-mock-line.strong{ background: #3A4552; height: 8px; }
+.doc-mock-line.dim{ background: var(--border-soft); }
+
+.doc-mock-row{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.doc-mock-parsed-stamp{
+  position: absolute;
+  bottom: 20px;
+  right: 22px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--signal-wash);
+  border: 1px solid rgba(61,214,163,0.3);
+  border-radius: 100px;
+  padding: 5px 11px;
+}
+.stamp-mono{
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--signal);
+}
+.stamp-time{
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--signal-dim);
+}
+
+/* floating annotations — each is a real, specific claim, matched to
+   the app's own Format Check panel language, not marketing fluff */
+.doc-mock-annotation{
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 3;
+  opacity: 0;
+  animation: annIn 0.5s var(--ease) forwards;
+}
+.ann-dot{
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--signal);
+  flex-shrink: 0;
+}
+.ann-label{
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--ink-soft);
+  background: rgba(20,26,33,0.9);
+  border: 1px solid var(--border);
+  padding: 5px 10px;
+  border-radius: 100px;
+  white-space: nowrap;
+  backdrop-filter: blur(6px);
+}
+.ann-check{ color: var(--signal); margin-right: 2px; }
+
+.ann-1{ top: 18px;    left: 4px;   animation-delay: 0.9s; }
+.ann-2{ top: 108px;   right: -6px; animation-delay: 1.1s; }
+.ann-3{ bottom: 92px; left: -10px; animation-delay: 1.3s; }
+.ann-4{ bottom: 14px; right: 2px;  animation-delay: 1.5s; }
+
+@keyframes annIn{
+  from{ opacity: 0; transform: translateY(6px) scale(0.96); }
+  to{ opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (max-width: 1040px){
+  .hero-inner{ grid-template-columns: 1fr; }
+  .hero-visual{ order: -1; margin-bottom: var(--sp-5); }
+  .doc-mock{ max-width: 360px; padding: 40px 54px; }
+}
+@media (max-width: 560px){
+  .hero{ padding: var(--sp-7) 0 var(--sp-6); }
+  .doc-mock-annotation{ display: none; } /* too tight to float labels legibly */
+  .doc-mock{ padding: 0; } /* that padding existed only as a gutter for the now-hidden annotations */
+  .doc-mock-page{ transform: none; padding: 26px 22px; }
+  .hero-actions{ flex-direction: column; align-items: stretch; }
+  .hero-actions .btn{ width: 100%; }
+}
+
+/* ── TRUST STRIP ── */
+.trust-strip{
+  border-top: 1px solid var(--border-soft);
+  border-bottom: 1px solid var(--border-soft);
+  background: rgba(20,26,33,0.4);
+}
+.trust-strip-inner{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-6);
+  padding: var(--sp-4) 0;
+  flex-wrap: wrap;
+}
+.trust-item{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+.trust-icon{ color: var(--signal); font-size: 11px; }
+.trust-divider{
+  width: 1px; height: 14px;
+  background: var(--border);
+}
+@media (max-width: 700px){
+  .trust-divider{ display: none; }
+  .trust-strip-inner{ gap: var(--sp-3) var(--sp-5); }
+}
+
+/* ── FOOTER ── */
+.footer{ padding: var(--sp-6) 0 var(--sp-7); }
+.footer-inner{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--muted);
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+}
+.footer-dim{ color: var(--muted); }
+
+/* ── Landing <-> Builder visibility swap ── */
+body.builder-active .nav,
+body.builder-active main,
+body.builder-active .footer{
+  display: none;
+}
+.builder-root[hidden]{ display: none; }

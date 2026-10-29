@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free Resume Builder — built for you</title>
+<meta name="description" content="Build an ATS-safe resume in minutes. No sign-up, no watermark, real selectable-text PDF export.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="landing.css">
+<link rel="stylesheet" href="builder.css">
+<link rel="stylesheet" href="extensions/ats-extras.css">
+</head>
+<body>
+
+<div class="noise-overlay" aria-hidden="true"></div>
+
+<!-- ═══════════════════ NAV ═══════════════════ -->
+<header class="nav">
+  <div class="container nav-inner">
+    <div class="nav-brand">
+      <span class="nav-brand-mark">◆</span>
+      <span class="nav-brand-name">Resume<span class="nav-brand-accent">Builder</span></span>
+    </div>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="#formats" class="nav-link">Formats</a>
+      <a href="#examples" class="nav-link">Examples</a>
+    </nav>
+    <div class="nav-actions">
+      <span class="ai-status-badge ai-status-checking" id="navAiStatus" title="Checking AI connection…">◌ AI: checking…</span>
+      <button class="btn btn-ghost btn-sm" id="navImportBtn">Paste AI Resume</button>
+      <button class="btn btn-primary btn-sm nav-cta" id="navBuildBtn">Build Resume</button>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════════════ HERO ═══════════════════ -->
+<main>
+  <section class="hero">
+    <div class="container hero-inner">
+
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="eyebrow-dot"></span>No sign-up · No watermark · Free</p>
+
+        <h1 class="hero-title">
+          Free Resume Builder,<br>
+          built for you.
+        </h1>
+        <p class="hero-attribution">— unknown</p>
+
+        <p class="hero-sub">
+          Write your story in plain English. We handle the part that actually gets you rejected — parseable structure, safe fonts, a text layer the applicant tracking system can read.
+        </p>
+
+        <div class="hero-actions">
+          <button class="btn btn-primary btn-lg" id="heroBuildBtn">
+            Build Resume
+            <span class="btn-arrow" aria-hidden="true">→</span>
+          </button>
+          <a href="#formats" class="btn btn-ghost btn-lg">
+            See Formats
+          </a>
+        </div>
+
+        <p class="hero-microcopy">Takes about 8 minutes. Your data stays in this browser.</p>
+        <p class="hero-import-line">Already have an AI-generated resume? <button type="button" class="hero-import-link" id="heroImportBtn">Paste it in instead →</button> · Have a saved file? <button type="button" class="hero-import-link" id="heroImportFileBtn">Import JSON →</button></p>
+      </div>
+
+      <div class="hero-visual" aria-hidden="true">
+        <!-- SIGNATURE ELEMENT — annotated resume mock. Every label is a
+             literal, true claim (same philosophy as the app's own
+             Format Check panel), not decorative marketing copy. -->
+        <div class="doc-mock">
+          <div class="doc-mock-annotation ann-1">
+            <span class="ann-dot"></span>
+            <span class="ann-label"><span class="ann-check">✓</span> selectable text layer</span>
+          </div>
+          <div class="doc-mock-annotation ann-2">
+            <span class="ann-dot"></span>
+            <span class="ann-label"><span class="ann-check">✓</span> single-column</span>
+          </div>
+          <div class="doc-mock-annotation ann-3">
+            <span class="ann-dot"></span>
+            <span class="ann-label"><span class="ann-check">✓</span> safe font · Calibri</span>
+          </div>
+          <div class="doc-mock-annotation ann-4">
+            <span class="ann-dot"></span>
+            <span class="ann-label"><span class="ann-check">✓</span> contact in body, not header</span>
+          </div>
+
+          <div class="doc-mock-page">
+            <div class="doc-mock-name">Jordan Alvarez</div>
+            <div class="doc-mock-title">Senior Backend Engineer</div>
+            <div class="doc-mock-contact">jordan@email.com · Austin, TX · linkedin.com/in/jordan</div>
+
+            <div class="doc-mock-section">Professional Summary</div>
+            <div class="doc-mock-line w-100"></div>
+            <div class="doc-mock-line w-92"></div>
+            <div class="doc-mock-line w-70"></div>
+
+            <div class="doc-mock-section">Work Experience</div>
+            <div class="doc-mock-row">
+              <div class="doc-mock-line w-45 strong"></div>
+              <div class="doc-mock-line w-25 dim"></div>
+            </div>
+            <div class="doc-mock-line w-96"></div>
+            <div class="doc-mock-line w-80"></div>
+
+            <div class="doc-mock-parsed-stamp">
+              <span class="stamp-mono">parsed_ok</span>
+              <span class="stamp-time">40ms</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══════════════════ TRUST STRIP ═══════════════════ -->
+  <section class="trust-strip">
+    <div class="container trust-strip-inner">
+      <div class="trust-item">
+        <span class="trust-icon">✓</span>
+        <span>Real text, never a rasterized image</span>
+      </div>
+      <div class="trust-divider" aria-hidden="true"></div>
+      <div class="trust-item">
+        <span class="trust-icon">✓</span>
+        <span>Fonts verified against parser testing</span>
+      </div>
+      <div class="trust-divider" aria-hidden="true"></div>
+      <div class="trust-item">
+        <span class="trust-icon">✓</span>
+        <span>Autosaves locally as you type</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════ FORMATS (populated by extensions/ats-extras.js) ═══════════════════ -->
+  <section class="ext-section" id="formats">
+    <div class="container">
+      <p class="ext-section-eyebrow">Formats</p>
+      <h2 class="ext-section-title">Every option here is ATS-safe.<br>Click one to apply it.</h2>
+      <p class="ext-section-sub">Fonts and layouts, straight from the parser testing behind this app. Clicking a card applies it live — to the preview and to the PDF you export.</p>
+
+      <h3 class="ext-group-label">Font</h3>
+      <div class="ext-card-grid" id="extFormatsFontGrid" role="list"></div>
+
+      <h3 class="ext-group-label ext-group-label-spaced">Layout</h3>
+      <div class="ext-card-grid" id="extFormatsLayoutGrid" role="list"></div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════ EXAMPLES (populated by extensions/ats-extras.js) ═══════════════════ -->
+  <section class="ext-section ext-section-alt" id="examples">
+    <div class="container">
+      <p class="ext-section-eyebrow">Examples</p>
+      <h2 class="ext-section-title">Three starting points.</h2>
+      <p class="ext-section-sub">Original placeholder resumes, not real people. Click one to load it into the builder and start editing from there.</p>
+
+      <div class="ext-card-grid ext-card-grid-examples" id="extExamplesGrid" role="list"></div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="container footer-inner">
+    <span>Resume<span class="nav-brand-accent">Builder</span></span>
+    <span class="footer-dim">Built for you. Not for the applicant tracking system's amusement.</span>
+  </div>
+</footer>
+
+<!-- ═══════════════════ BUILDER SHELL (hidden until Build Resume) ═══════════════════ -->
+<div id="builderRoot" class="builder-root" hidden>
+  <div class="toolbar">
+    <div class="toolbar-left" id="toolbarLeft"></div>
+    <div class="toolbar-right" id="toolbarRight"></div>
+  </div>
+
+  <div class="builder-layout">
+    <aside class="rail-pane">
+      <div class="rail-pane-head">
+        <button class="rail-back-btn" id="railBackBtn" aria-label="Back to home">← Home</button>
+      </div>
+      <nav id="rail" class="rail" aria-label="Resume sections"></nav>
+    </aside>
+
+    <section class="form-pane-wrap">
+      <div id="formPane" class="form-pane"></div>
+    </section>
+
+    <section class="preview-pane-wrap">
+      <div id="previewPane" class="preview-pane"></div>
+    </section>
+  </div>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<div id="extModalHost"></div>
+<div id="aiImportModalHost"></div>
+
+<script src="landing.js"></script>
+<script src="app_1_.js"></script>
+<script src="extensions/sample-resumes.js"></script>
+<script src="extensions/ats-extras.js"></script>
+<script src="extensions/ai-import.js"></script>
+<script src="extensions/data-portability.js"></script></body>
+</html>

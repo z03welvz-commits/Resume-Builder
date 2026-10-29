@@ -1,0 +1,1015 @@
+/* ════════════════════════════════════════════════════════════════
+   BUILDER SHELL — every selector here matches an id/class app_1_.js
+   already writes to (#formPane, #rail, #previewPane, .item-card,
+   .chip, .rail-step, .ats-panel, etc). Same token system as the
+   landing page, so the two surfaces read as one product.
+   ════════════════════════════════════════════════════════════════ */
+
+.builder-root{
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── TOOLBAR ── */
+.toolbar{
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+  padding: 0 var(--sp-5);
+  background: rgba(247,248,251,0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border-soft);
+}
+.toolbar-left, .toolbar-right{
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+/* ── 3-PANE LAYOUT ── */
+.builder-layout{
+  flex: 1;
+  display: grid;
+  grid-template-columns: 220px minmax(340px, 480px) 1fr;
+  min-height: 0;
+}
+
+/* ── RAIL (left nav) ── */
+.rail-pane{
+  border-right: 1px solid var(--border-soft);
+  background: var(--surface-2);
+  padding: var(--sp-4) 0;
+  overflow-y: auto;
+}
+.rail-pane-head{
+  padding: 0 var(--sp-4) var(--sp-3);
+  margin-bottom: var(--sp-2);
+  border-bottom: 1px solid var(--border-soft);
+}
+.rail-back-btn{
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 6px 4px;
+  border-radius: var(--radius-sm);
+}
+.rail-back-btn:hover{ color: var(--ink); }
+
+.rail-step{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px var(--sp-4);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  transition: color 0.15s var(--ease), background 0.15s var(--ease), border-color 0.15s var(--ease);
+}
+.rail-step:hover{ color: var(--ink-soft); background: var(--surface-2); }
+.rail-step-dot{
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--border);
+  flex-shrink: 0;
+  transition: background 0.15s var(--ease), box-shadow 0.15s var(--ease);
+}
+.rail-step.active{
+  color: var(--ink);
+  background: var(--surface-2);
+  border-left-color: var(--accent);
+}
+.rail-step.active .rail-step-dot{
+  background: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-wash);
+}
+.rail-step.done .rail-step-dot{ background: var(--signal); }
+.rail-step.done:not(.active){ color: var(--ink-soft); }
+
+/* ── FORM PANE ── */
+.form-pane-wrap{
+  overflow-y: auto;
+  border-right: 1px solid var(--border-soft);
+}
+.form-pane{
+  padding: var(--sp-6) var(--sp-5);
+  max-width: 560px;
+}
+
+.section-title{
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+.section-sub{
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--muted);
+  margin-bottom: var(--sp-5);
+  max-width: 52ch;
+}
+
+.field{ margin-bottom: var(--sp-4); }
+.field label{
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--ink-soft);
+  margin-bottom: 6px;
+}
+.field-row{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-3);
+}
+@media (max-width: 480px){
+  .field-row{ grid-template-columns: 1fr; }
+}
+
+input, textarea, select{
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  color: var(--ink);
+  transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease);
+}
+input::placeholder, textarea::placeholder{ color: var(--muted); }
+input:focus, textarea:focus, select:focus{
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-wash);
+}
+textarea{ resize: vertical; min-height: 80px; line-height: 1.5; }
+input[type="checkbox"]{ width: auto; }
+input[type="month"]{ color-scheme: light; }
+
+.hint{
+  font-size: 11.5px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+/* ── Skills chips ── */
+.skill-group-label{
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin: var(--sp-5) 0 var(--sp-2);
+}
+.skill-group-label:first-of-type{ margin-top: 0; }
+.chip-row{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: var(--sp-3);
+  min-height: 0;
+}
+.chip{
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--signal-wash);
+  border: 1px solid rgba(61,214,163,0.28);
+  color: var(--ink);
+  font-size: 12.5px;
+  font-weight: 500;
+  padding: 6px 8px 6px 12px;
+  border-radius: 100px;
+}
+.chip button{
+  background: none;
+  border: none;
+  color: var(--signal-dim);
+  cursor: pointer;
+  font-size: 11px;
+  padding: 2px;
+  line-height: 1;
+  border-radius: 50%;
+  display: flex;
+}
+.chip button:hover{ color: var(--danger); background: var(--danger-wash); }
+
+/* ── Item cards (experience / projects / education / certs) ── */
+.item-card{
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--sp-4);
+  margin-bottom: var(--sp-4);
+}
+.item-card-head{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--sp-3);
+}
+.item-tag{
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--accent);
+  background: var(--accent-wash);
+  padding: 3px 9px;
+  border-radius: 100px;
+}
+
+/* ── Nav footer (Back / Next inside the form) ── */
+.nav-footer{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+/* ── PREVIEW PANE ── */
+.preview-pane-wrap{
+  overflow-y: auto;
+  background:
+    radial-gradient(circle at 15% 0%, rgba(79,70,229,0.05) 0%, transparent 40%),
+    var(--bg);
+  padding: var(--sp-5);
+}
+.preview-pane{ max-width: 700px; margin: 0 auto; }
+
+.doc-toolbar{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--sp-3);
+}
+.doc-toolbar-title{
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+
+.doc-toolbar-controls{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.page-shell{
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  padding: 12px;
+}
+.page-shell-inner{
+  background-color: #FDFDFC;
+  color: #1c1c1e;
+  border-radius: 4px;
+  padding: 44px 46px;
+  width: 210mm;
+  min-height: 297mm;
+  box-sizing: border-box;
+  font-size: 10.5pt;
+  line-height: 1.5;
+  /* Marks each subsequent page boundary at every 297mm of content
+     height, purely in CSS — no JS height measurement needed, so it
+     stays correct at any zoom level. On a single-page resume this
+     line falls exactly on the box's own bottom edge and is invisible;
+     it only becomes visible once content actually spans page 2+. */
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent calc(297mm - 1px),
+    rgba(28,28,30,0.18) calc(297mm - 1px),
+    rgba(28,28,30,0.18) 297mm
+  );
+}
+
+/* ── ATS FORMAT CHECK PANEL ── */
+.ats-panel{
+  margin-top: var(--sp-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--sp-4);
+}
+.ats-panel-title{
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: var(--sp-3);
+}
+.ats-check{
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  padding: 5px 0;
+}
+.ats-check-icon{
+  width: 16px; height: 16px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  margin-top: 1px;
+}
+.ats-check-icon.ok{ background: var(--signal-wash); color: var(--signal); }
+.ats-check-icon.warn{ background: var(--warn-wash); color: var(--warn); }
+.ats-check-icon.pending{ background: var(--surface-2); color: var(--muted); }
+
+/* ── TOAST ── */
+.toast{
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(12px);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 12px 20px;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s var(--ease), transform 0.25s var(--ease);
+  z-index: 100;
+}
+.toast.show{
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+.toast.success{ border-color: rgba(61,214,163,0.4); }
+.toast.error{ border-color: rgba(255,107,107,0.4); }
+
+/* ── RESPONSIVE: builder layout collapses on narrower screens ──
+   Scoped to `screen` explicitly. Without this, A4 paper's own CSS-px
+   width (~794px) satisfies max-width:1100px during print/Save-as-PDF
+   too — display:none from a plain @media rule can't be un-hidden by
+   `visibility:visible` in @media print (different properties), so
+   the exact form the printed doc must render in was being knocked
+   out before print ever measured it. Bug fixed 2026 — was previously
+   causing exportPdf() to open a blank print preview. */
+@media screen and (max-width: 1100px){
+  .builder-layout{ grid-template-columns: 200px 1fr; }
+  .preview-pane-wrap{ display: none; } /* form remains fully usable; preview reachable via toolbar export */
+}
+@media screen and (max-width: 760px){
+  .builder-layout{ grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+  .rail-pane{
+    border-right: none;
+    border-bottom: 1px solid var(--border-soft);
+    display: flex;
+    padding: var(--sp-2) var(--sp-3);
+    overflow-x: auto;
+  }
+  .rail-pane-head{ display: none; }
+  #rail{ display: flex; gap: 4px; }
+  .rail-step{ border-left: none; border-bottom: 2px solid transparent; white-space: nowrap; padding: 8px 12px; }
+  .rail-step.active{ border-bottom-color: var(--accent); background: transparent; }
+  .form-pane-wrap{ border-right: none; }
+}
+
+
+/* ── WRITING CHECK PANEL ──
+   Docked under Experience/Projects, same visual language as the
+   ATS panel (.ats-panel) so it doesn't read as a bolted-on widget. */
+.writing-panel{
+  margin-top: var(--sp-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+.writing-panel-head{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-3) var(--sp-4);
+  cursor: pointer;
+  user-select: none;
+}
+.writing-panel-head:hover{ background: var(--surface-2); }
+.writing-panel-title{
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.writing-panel-chevron{
+  color: var(--muted);
+  font-size: 11px;
+  transition: transform 0.15s var(--ease);
+}
+.writing-panel-chevron.open{ transform: rotate(180deg); }
+.writing-panel-body{
+  border-top: 1px solid var(--border-soft);
+}
+.writing-issue{
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: var(--sp-3) var(--sp-4);
+  border-bottom: 1px solid var(--border-soft);
+  transition: background 0.15s var(--ease);
+}
+.writing-issue:last-child{ border-bottom: none; }
+.writing-issue:hover{ background: var(--surface-2); }
+.writing-issue-select{
+  flex-shrink: 0;
+  width: 15px; height: 15px;
+  margin-top: 2px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+.writing-issue-select-spacer{
+  flex-shrink: 0;
+  width: 15px;
+}
+.writing-issue-icon{
+  width: 18px; height: 18px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 700;
+  margin-top: 1px;
+}
+.writing-issue-icon.high{ background: var(--danger-wash); color: var(--danger); }
+.writing-issue-icon.medium{ background: var(--warn-wash); color: var(--warn); }
+.writing-issue-icon.low{ background: var(--surface-2); color: var(--muted); border: 1px solid var(--border); }
+.writing-issue-body{
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+}
+.writing-issue-msg{
+  font-size: 12.5px;
+  color: var(--ink);
+  line-height: 1.4;
+  font-weight: 500;
+}
+.writing-issue-meta{
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.writing-issue-apply{
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.writing-issue-tip{
+  flex-shrink: 0;
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+  padding-top: 4px;
+}
+
+/* Rail badge — small dot indicating a section has open suggestions */
+.rail-step-flag{
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--warn);
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+/* Brief highlight pulse when a writing-check row scrolls a field into view */
+@keyframes fieldPulse{
+  0%   { box-shadow: 0 0 0 0 var(--warn-wash); }
+  50%  { box-shadow: 0 0 0 4px var(--warn-wash); }
+  100% { box-shadow: 0 0 0 0 rgba(0,0,0,0); }
+}
+.field-pulse{ animation: fieldPulse 0.9s var(--ease); border-radius: var(--radius-sm); }
+
+
+/* ── REWRITE WITH AI (section-level, on Experience/Project cards) ── */
+.rewrite-btn{
+  font-size: 11.5px;
+  padding: 5px 10px;
+}
+.rewrite-btn:disabled{ opacity: 0.6; cursor: default; }
+.rewrite-preview{
+  margin-top: var(--sp-3);
+  background: var(--accent-wash);
+  border: 1px solid var(--accent-wash-strong);
+  border-radius: var(--radius-md);
+  padding: var(--sp-3) var(--sp-4);
+}
+.rewrite-preview.rewrite-loading{
+  color: var(--muted);
+  font-size: 12.5px;
+  background: var(--surface);
+  border-color: var(--border);
+}
+.rewrite-preview-title{
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: var(--sp-2);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.rewrite-preview-title::before{
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+.rewrite-preview-list{
+  margin: 0 0 var(--sp-3) 0;
+  padding-left: 18px;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  line-height: 1.55;
+}
+.rewrite-preview-list li{ margin-bottom: 4px; }
+.rewrite-preview-actions{
+  display: flex;
+  gap: 8px;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   ANALYZE RESUME — score cluster, keyword match report, AI
+   suggestions. This is the signature surface of the redesign: three
+   score rings (Overall / ATS / Keyword Match), each a real
+   proportional read of the underlying number, not a decorative
+   gauge. Everything below it (chips, suggestion rows) shares the
+   same card language as the rest of the builder.
+   ════════════════════════════════════════════════════════════════ */
+
+.jd-report{
+  margin-top: var(--sp-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+.jd-report-block{
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--sp-4);
+  box-shadow: var(--shadow-sm);
+}
+.jd-report-title{
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: var(--sp-3);
+}
+.jd-chip-row{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.jd-chip{
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+}
+.jd-chip-match{ background: var(--signal-wash); color: var(--signal-dim); border-color: rgba(22,163,74,0.22); }
+.jd-chip-missing{ background: var(--warn-wash); color: var(--warn); border-color: rgba(217,119,6,0.22); }
+.jd-chip-actionable{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px 4px 10px;
+}
+.jd-chip-add{
+  background: none;
+  border: none;
+  color: var(--warn);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 2px;
+  border-radius: 50%;
+  display: flex;
+}
+.jd-chip-add:hover{ background: rgba(217,119,6,0.18); }
+.jd-chip-priority{
+  font-size: 10px;
+  margin-right: 3px;
+  opacity: 0.75;
+}
+.jd-empty-note{ font-size: 12.5px; color: var(--muted); }
+
+
+/* ── Score ring cluster — the signature element ──
+   Three .score-ring-card sit side by side (stack on mobile). Each
+   card's SVG ring has its stroke-dasharray/stroke-dashoffset set
+   inline (in renderScoreRing()) proportional to the real score, so
+   the arc length *is* the number, not an icon sitting next to it. */
+.score-cluster{
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-4);
+  margin-bottom: var(--sp-4);
+}
+@media (max-width: 900px){
+  .score-cluster{ grid-template-columns: 1fr; }
+}
+.score-ring-card{
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-5) var(--sp-4);
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--sp-3);
+}
+.score-ring-wrap{
+  position: relative;
+  width: 108px;
+  height: 108px;
+}
+.score-ring-svg{ width: 108px; height: 108px; transform: rotate(-90deg); }
+.score-ring-track{ fill: none; stroke: var(--surface-2); stroke-width: 9; }
+.score-ring-bar{
+  fill: none;
+  stroke-width: 9;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.9s var(--ease), stroke 0.3s var(--ease);
+}
+.score-ring-bar.ok{ stroke: var(--signal); }
+.score-ring-bar.warn{ stroke: var(--warn); }
+.score-ring-bar.danger{ stroke: var(--danger); }
+.score-ring-bar.pending{ stroke: var(--border); }
+.score-ring-num{
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--ink);
+}
+.score-ring-num.pending{ color: var(--muted); font-size: 13px; font-weight: 600; padding: 0 14px; line-height: 1.3; }
+.score-ring-label{
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.score-ring-sub{
+  font-size: 11.5px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+/* Reasons list beneath the ATS ring card, and the JD keyword score
+   header — both reuse this row style. */
+.ats-score-reasons{ display: flex; flex-direction: column; margin-top: var(--sp-2); }
+.ats-score-block{ text-align: left; }
+
+/* ── AI Suggestions panel — same card + row idiom as writing-issue,
+   distinguished by the accent-tinted icon so it visually reads as
+   "AI-sourced" without needing a separate label on every row. ── */
+.ai-suggest-icon{
+  background: var(--accent-wash);
+  color: var(--accent);
+}
+
+/* Header row: "AI Suggestions (n)" title + "Select all" checkbox,
+   side by side so select-all reads as scoped to this panel only. */
+.jd-report-title-row{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-3);
+}
+.jd-report-title-row .jd-report-title{ margin-bottom: 0; }
+.select-all-fixes{
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ink-soft);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.select-all-fixes input{
+  width: 14px; height: 14px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+/* Sticky-feeling bar that appears once at least one fix is checked,
+   summarizing the selection and offering one apply for all of them. */
+.bulk-apply-bar{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  margin-top: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--accent-wash);
+  border: 1px solid var(--accent-wash-strong);
+  border-radius: var(--radius-md);
+}
+.bulk-apply-bar span{
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+/* ── PRINT: only the page-shell-inner should ever hit paper ──
+   @page pins the real printed margin to exactly what app_1_.js's
+   A4_USABLE_HEIGHT_PX/A4_USABLE_WIDTH_PX already assume (0.5in each
+   side) — without this, the browser's own default print margin
+   (varies by browser/OS, often larger) can silently disagree with
+   the auto-fit math, changing how much blank space shows up at
+   export time independent of anything in the DOM. */
+@page{
+  size: A4;
+  margin: 0.5in;
+}
+@media print{
+  /* The real fix for "lots of blank pages" on export: visibility:hidden
+     (below) keeps every hidden element in normal document flow — it
+     just makes them invisible, it doesn't stop them from taking up
+     space. Print also ignores overflow:auto clipping, so the rail nav
+     and (often long) form pane, which only ever look bounded because
+     the live browser view scroll-clips them, would lay out in FULL and
+     get paginated into a string of blank pages before/after the actual
+     resume. display:none removes them from flow entirely instead, so
+     print pagination only ever sees the resume itself. */
+  body.is-printing .toolbar,
+  body.is-printing .rail-pane,
+  body.is-printing .form-pane-wrap,
+  body.is-printing .doc-toolbar,
+  body.is-printing #atsPanelSlot{
+    display: none;
+  }
+  body.is-printing *{ visibility: hidden; }
+  body.is-printing .page-shell-inner,
+  body.is-printing .page-shell-inner *{ visibility: visible; }
+  body.is-printing .page-shell-inner{
+    position: absolute;
+    top: 0; left: 0;
+    background: #fff;
+    padding: 0;
+    box-shadow: none;
+    /* .page-shell-inner's screen rule sets min-height:297mm so the
+       on-screen preview always shows a full A4 sheet — correct for
+       screen, wrong for print. Left unset here, printing a resume
+       shorter than one page forces this element to occupy a full
+       page height regardless of actual content, which is exactly
+       the "extra blank space at the bottom of the export" bug: the
+       page-shell's own painted background (page-boundary marker
+       lines) would then also print into that blank area. Both are
+       reset to let the box size to its real content. */
+    min-height: 0;
+    width: auto;
+    background-image: none;
+  }
+  /* Only matters once a resume actually spans 2+ pages: keeps one
+     experience/education/project/certification entry from splitting
+     mid-bullet-list across the page boundary. Every such entry is
+     already wrapped in a [data-fit="item-gap"] element (see
+     renderPreview() in app_1_.js), so this needs no new markup. */
+  body.is-printing .page-shell-inner [data-fit="item-gap"]{
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   AI IMPORT — styles for extensions/ai-import.js ("Paste AI Resume").
+   Namespaced under .ai-import-* / .nav-actions, same convention as
+   ats-extras.css's .ext-* namespace. Reuses the .ext-modal-backdrop /
+   .ext-modal-head / .ext-modal-close / .ext-modal-foot chrome classes
+   defined in extensions/ats-extras.css (loaded before this file, see
+   index.html's <script> order) rather than redefining that chrome —
+   only the modal's own box and body content get rules here.
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── Nav: group Build + Import buttons so justify-content:space-between
+   on .nav-inner still only distributes 3 groups (brand / links / actions),
+   not 4. ── */
+.nav-actions{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ── Hero: a quieter secondary entry point under the primary CTAs,
+   rather than a third full-weight button competing with "Build Resume". ── */
+.hero-import-line{
+  margin-top: 14px;
+  font-size: 13.5px;
+  color: var(--ink-soft);
+}
+.hero-import-link{
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  color: var(--accent);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.hero-import-link:hover{ color: var(--accent-dim); }
+
+/* ── Modal ── */
+body.ai-import-open{ overflow: hidden; }
+
+.ai-import-modal{
+  position: fixed;
+  top: 6vh;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(640px, 92vw);
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  z-index: 211;
+  overflow: hidden;
+}
+
+.ai-import-head-title{
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 17px;
+  color: var(--ink);
+}
+.ai-import-head-sub{
+  margin-top: 4px;
+  font-size: 12.5px;
+  color: var(--muted);
+  max-width: 46ch;
+}
+
+.ai-import-body{
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: var(--sp-3);
+}
+
+.ai-import-textarea{
+  width: 100%;
+  min-height: 320px;
+  resize: vertical;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.ai-import-hint{
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.ai-import-error{
+  font-size: 13.5px;
+  color: var(--ink-soft);
+  background: var(--danger-wash);
+  border: 1px solid rgba(225,29,72,0.18);
+  border-radius: var(--radius-md);
+  padding: var(--sp-4);
+}
+
+.ai-import-preview-card{
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--sp-5);
+  background: var(--surface);
+}
+.ai-import-preview-name{
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--ink);
+}
+.ai-import-preview-name em, .ai-import-preview-contact em{
+  font-style: normal;
+  color: var(--muted);
+  font-weight: 400;
+}
+.ai-import-preview-title{
+  margin-top: 2px;
+  font-size: 13.5px;
+  color: var(--ink-soft);
+}
+.ai-import-preview-contact{
+  margin-top: 8px;
+  font-size: 12.5px;
+  color: var(--muted);
+  font-family: var(--font-mono);
+}
+.ai-import-preview-stats{
+  margin-top: var(--sp-4);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--border-soft);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.ai-import-preview-stats span{
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--accent-dim);
+  background: var(--accent-wash);
+  border-radius: 100px;
+  padding: 5px 11px;
+}
+
+@media (max-width: 640px){
+  .ai-import-modal{ top: 0; width: 100vw; height: 100vh; max-height: 100vh; border-radius: 0; }
+  .ext-modal-foot > div{ flex-direction: column; align-items: stretch; width: 100%; }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   AI STATUS BADGE — landing nav (#navAiStatus) + builder toolbar
+   (rendered inline by app_1_.js's renderToolbar). Reflects whether
+   GROQ_API_KEY is set and whether the last check/call actually
+   succeeded, so a blank/bad key is visible instead of silently
+   falling back to the local checker with no explanation.
+   ════════════════════════════════════════════════════════════════ */
+.ai-status-badge{
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 100px;
+  white-space: nowrap;
+  cursor: default;
+}
+.ai-status-off{
+  color: var(--muted);
+  background: rgba(138,143,160,0.10);
+}
+.ai-status-checking{
+  color: var(--muted);
+  background: rgba(138,143,160,0.10);
+  animation: aiStatusPulse 1.2s ease-in-out infinite;
+}
+.ai-status-on{
+  color: var(--signal);
+  background: rgba(22,163,74,0.10);
+}
+.ai-status-error{
+  color: var(--danger);
+  background: var(--danger-wash);
+}
+@keyframes aiStatusPulse{
+  0%, 100%{ opacity: 1; }
+  50%{ opacity: 0.5; }
+}

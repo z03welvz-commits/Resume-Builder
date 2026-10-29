@@ -1,0 +1,409 @@
+/* ════════════════════════════════════════════════════════════════
+   ATS EXTRAS — extension stylesheet
+   Adds styling for: the extra toolbar row (layout + sample pickers)
+   and the "Hybrid — Skills Emphasis" chip panel it can render.
+   Everything here is namespaced under ext-* / .doc-toolbar-ext
+   classes that don't exist in builder.css, so nothing here can ever
+   override or collide with the base app's rules.
+   ════════════════════════════════════════════════════════════════ */
+
+.doc-toolbar-ext{
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin: -4px 0 var(--sp-3);
+}
+.doc-toolbar-ext select{
+  width: auto;
+  padding: 6px 9px;
+  font-size: 12px;
+}
+.doc-toolbar-ext-label{
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-right: -2px;
+}
+
+/* ── Hybrid layout: Core Skills chip panel ──
+   Swapped in over the plain "Technical: ..." sentence when the
+   Hybrid layout is selected. Still plain text nodes (no icons/
+   images), still single-column — just visually grouped so skills
+   read as scannable keywords rather than a run-on sentence. */
+.ext-skills-panel{
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ext-skills-row{
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.ext-skills-row-label{
+  font-size: 9.5pt;
+  font-weight: 700;
+  color: #555;
+  min-width: 62px;
+  margin-top: 3px;
+}
+.ext-skills-chips{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  flex: 1;
+}
+.ext-skill-chip{
+  display: inline-block;
+  font-size: 9.5pt;
+  padding: 2px 8px;
+  border: 1px solid #999;
+  border-radius: 3px;
+  color: #1c1c1e;
+  line-height: 1.5;
+}
+
+/* ── Sample-load confirmation affordance on the picker itself ── */
+#extSampleSelect{ cursor: pointer; }
+
+/* ════════════════════════════════════════════════════════════════
+   LANDING PAGE — #formats / #examples sections.
+   Same tokens as landing.css (colors/type/spacing/radius all pulled
+   from tokens.css), kept in this file rather than landing.css so the
+   "remove this file + its <script>/<link> tags to fully revert"
+   guarantee at the top of ats-extras.js still holds for the CSS too.
+   ════════════════════════════════════════════════════════════════ */
+
+.ext-section{
+  padding: var(--sp-8) 0;
+  scroll-margin-top: 80px; /* clears the sticky nav when jumped to via #formats/#examples */
+}
+.ext-section-alt{
+  background: var(--surface);
+  border-top: 1px solid var(--border-soft);
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.ext-section-eyebrow{
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--signal);
+  margin-bottom: var(--sp-2);
+}
+.ext-section-title{
+  font-size: clamp(26px, 3.4vw, 36px);
+  color: var(--ink);
+  max-width: 20ch;
+}
+.ext-section-sub{
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  max-width: 56ch;
+  margin-top: var(--sp-3);
+}
+
+.ext-group-label{
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: var(--sp-6) 0 var(--sp-3);
+}
+.ext-group-label-spaced{ margin-top: var(--sp-7); }
+
+.ext-card-grid{
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--sp-3);
+}
+.ext-card-grid-examples{
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  margin-top: var(--sp-3);
+}
+
+.ext-card{
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  gap: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: var(--sp-4);
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: transform 0.15s var(--ease), border-color 0.15s var(--ease), box-shadow 0.15s var(--ease);
+}
+.ext-card:hover{
+  border-color: var(--accent);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+.ext-card:active{ transform: translateY(0); }
+
+.ext-card-name{
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.ext-card-role{
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--signal);
+  margin-top: -2px;
+}
+.ext-card-note{
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  margin-top: 2px;
+}
+.ext-card-cta{
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--accent);
+  margin-top: var(--sp-2);
+}
+.ext-card:hover .ext-card-cta{ color: var(--accent-dim); }
+
+@media (max-width: 560px){
+  .ext-card-grid, .ext-card-grid-examples{ grid-template-columns: 1fr; }
+}
+
+/* ── Example card resume thumbnail ──
+   A small representative page, not a pixel-exact clone of the real
+   .page-shell-inner (that's built for a full A4 page at 10.5pt).
+   Reads the same sample.data fields via extBuildThumb() in
+   ats-extras.js, so the thumbnail can never show content that
+   doesn't match what actually loads when the card is clicked. */
+.ext-card-example{
+  padding: var(--sp-3);
+  gap: 2px;
+}
+.ext-thumb{
+  width: 100%;
+  aspect-ratio: 210 / 297; /* A4 proportions, scaled down */
+  background: #FDFDFC;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 11px;
+  margin-bottom: var(--sp-3);
+  overflow: hidden;
+  font-family: var(--font-body);
+}
+.ext-thumb-name{
+  font-size: 7.5px;
+  font-weight: 700;
+  color: var(--ink);
+  text-align: center;
+}
+.ext-thumb-title{
+  font-size: 5px;
+  font-weight: 600;
+  color: var(--signal);
+  text-align: center;
+  margin-top: 1px;
+}
+.ext-thumb-contact{
+  font-size: 4px;
+  color: var(--muted);
+  text-align: center;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ext-thumb-section{
+  font-size: 4.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  border-bottom: 0.6px solid var(--border);
+  padding-bottom: 2px;
+  margin: 6px 0 3px;
+}
+.ext-thumb-line{
+  height: 2.4px;
+  border-radius: 1px;
+  background: var(--border);
+  margin-bottom: 2.2px;
+}
+.ext-thumb-chips{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+.ext-thumb-chips span{
+  font-size: 4px;
+  color: var(--ink-soft);
+  border: 0.5px solid var(--border);
+  border-radius: 2px;
+  padding: 1px 3px;
+  line-height: 1.4;
+}
+.ext-thumb-exp-row{
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+  margin-bottom: 1.5px;
+}
+.ext-thumb-exp-role{
+  font-size: 4.5px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.ext-thumb-exp-co{
+  font-size: 4px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* ── PREVIEW MODAL ──────────────────────────────────────────────
+   One modal, reused for both Formats cards (font/layout) and
+   Examples cards (samples). Rendered into #extModalHost, an empty
+   div injected at the end of <body> the first time it's needed
+   (see extEnsureModalHost() in ats-extras.js). Sits above everything
+   including the builder shell, since it can be opened from either
+   the landing page or the in-builder toolbar. */
+body.ext-modal-open{ overflow: hidden; } /* lock background scroll while modal is open */
+
+.ext-modal-backdrop{
+  position: fixed;
+  inset: 0;
+  background: rgba(20,22,31,0.55);
+  backdrop-filter: blur(2px);
+  z-index: 200;
+}
+.ext-modal{
+  position: fixed;
+  top: 4vh;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(880px, 92vw);
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  z-index: 201;
+  overflow: hidden;
+}
+
+.ext-modal-head{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  padding: var(--sp-4) var(--sp-5);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border-soft);
+  flex-shrink: 0;
+}
+.ext-modal-controls{
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+}
+.ext-modal-label{
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.ext-modal-label select{
+  font-family: var(--font-body);
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--ink);
+  padding: 6px 9px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+}
+.ext-modal-close{
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--ink-soft);
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 14px;
+  flex-shrink: 0;
+  transition: background 0.15s var(--ease), color 0.15s var(--ease);
+}
+.ext-modal-close:hover{ background: var(--surface-2); color: var(--ink); }
+
+.ext-modal-body{
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--sp-6) var(--sp-6);
+  display: flex;
+  justify-content: center;
+}
+.ext-modal-page-shell{
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  padding: 12px;
+  width: 100%;
+  max-width: 640px;
+  height: fit-content;
+}
+/* The real .page-shell-inner arrives full-size (210mm A4 width) via
+   outerHTML from renderPreview() — scale it down visually to fit the
+   modal rather than fighting its intrinsic width/height, so it stays
+   pixel-identical in proportions to the real builder preview. */
+.ext-modal-page-shell .page-shell-inner{
+  width: 210mm !important;
+  transform: scale(0.62);
+  transform-origin: top left;
+  margin-bottom: calc(-38% - 24px); /* pulls the scaled element's now-empty layout space back in, so the modal doesn't leave a huge blank gap below it */
+}
+
+.ext-modal-foot{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  padding: var(--sp-4) var(--sp-5);
+  background: var(--surface);
+  border-top: 1px solid var(--border-soft);
+  flex-shrink: 0;
+}
+.ext-modal-foot-note{
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+@media (max-width: 640px){
+  .ext-modal{ top: 0; width: 100vw; height: 100vh; max-height: 100vh; border-radius: 0; }
+  .ext-modal-controls{ gap: var(--sp-3); }
+  .ext-modal-foot{ flex-direction: column; align-items: stretch; gap: var(--sp-2); }
+  .ext-modal-foot-note{ text-align: center; }
+}

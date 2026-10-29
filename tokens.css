@@ -1,0 +1,212 @@
+/* ════════════════════════════════════════════════════════════════
+   DESIGN TOKENS — single source of truth for color/type/spacing.
+   Shared by landing.css and builder.css so both surfaces feel like
+   one product, not a marketing page bolted onto a different app.
+
+   DIRECTION: clean modern SaaS. Light neutral base, one confident
+   accent (indigo), soft layered shadows instead of hard borders,
+   generous radius. Score states (ok/warn/danger) are the only other
+   colors that carry meaning — everything else is ink and gray.
+   ════════════════════════════════════════════════════════════════ */
+
+:root{
+  /* ── Color — near-white base, not pure white; one accent family ── */
+  --bg:            #F7F8FB;
+  --surface:       #FFFFFF;
+  --surface-2:     #F1F2F6;
+  --border:        #E5E7EE;
+  --border-soft:   #ECEDF3;
+
+  --ink:           #14161F;
+  --ink-soft:      #565B6B;
+  --muted:         #8A8FA0;
+
+  /* primary accent — indigo. Used for primary actions, focus, links,
+     and the active-state signal across the product. */
+  --accent:        #4F46E5;
+  --accent-dim:    #4238C9;
+  --accent-bright: #6D63FF;
+  --accent-wash:   rgba(79,70,229,0.08);
+  --accent-wash-strong: rgba(79,70,229,0.14);
+
+  /* score/status semantics — used literally by score rings, format
+     checks, chips. Not decorative. */
+  --signal:        #16A34A;
+  --signal-dim:    #0F8A3E;
+  --signal-wash:   rgba(22,163,74,0.10);
+
+  --danger:        #E11D48;
+  --danger-wash:   rgba(225,29,72,0.09);
+  --warn:          #D97706;
+  --warn-wash:     rgba(217,119,6,0.10);
+
+  --white:         #FFFFFF;
+
+  /* ── Type ──
+     Display: Manrope — a grotesque with a bit of warmth in the
+     curves, set tight and heavy for headings. Body: Inter, for
+     density and legibility in forms/panels. Mono: JetBrains Mono,
+     reserved for scores, labels, and anything numeric/technical. */
+  --font-display: 'Manrope', 'Inter', -apple-system, sans-serif;
+  --font-body:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono:    'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
+
+  /* ── Spacing scale ── */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 48px;
+  --sp-8: 64px;
+  --sp-9: 96px;
+
+  /* ── Radius / shadow — soft, layered, low-contrast ── */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --shadow-sm: 0 1px 2px rgba(20,22,31,0.04), 0 1px 1px rgba(20,22,31,0.03);
+  --shadow-md: 0 4px 16px rgba(20,22,31,0.06), 0 1px 3px rgba(20,22,31,0.04);
+  --shadow-lg: 0 16px 40px rgba(20,22,31,0.10), 0 4px 10px rgba(20,22,31,0.05);
+
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+*, *::before, *::after{ box-sizing: border-box; }
+
+html{
+  background: var(--bg);
+  color-scheme: light;
+}
+
+body{
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3{
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.12;
+  margin: 0;
+  color: var(--ink);
+}
+
+p{ margin: 0; }
+
+a{ color: var(--accent); text-decoration: none; }
+
+/* Visible keyboard focus everywhere — non-negotiable, not just on
+   custom controls. Mouse users never see this (:focus-visible). */
+:focus-visible{
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+button{ font-family: inherit; }
+
+::selection{
+  background: var(--accent-wash-strong);
+  color: var(--ink);
+}
+
+@media (prefers-reduced-motion: reduce){
+  *, *::before, *::after{
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Shared button system (landing + builder both use these) ── */
+.btn{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 14px;
+  padding: 11px 20px;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: transform 0.15s var(--ease), background 0.15s var(--ease), border-color 0.15s var(--ease), opacity 0.15s var(--ease), box-shadow 0.15s var(--ease);
+  white-space: nowrap;
+}
+.btn:active{ transform: translateY(1px); }
+.btn:disabled{ cursor: not-allowed; opacity: 0.5; transform: none; }
+
+.btn-primary{
+  background: var(--accent);
+  color: var(--white);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.12) inset, 0 6px 16px rgba(79,70,229,0.24);
+}
+.btn-primary:hover:not(:disabled){ background: var(--accent-dim); box-shadow: 0 1px 0 rgba(255,255,255,0.12) inset, 0 8px 20px rgba(79,70,229,0.30); }
+
+.btn-secondary{
+  background: var(--surface);
+  color: var(--ink);
+  border-color: var(--border);
+  box-shadow: var(--shadow-sm);
+}
+.btn-secondary:hover:not(:disabled){ background: var(--surface-2); border-color: #D7D9E4; }
+
+.btn-ghost{
+  background: transparent;
+  color: var(--ink-soft);
+  border-color: var(--border);
+}
+.btn-ghost:hover:not(:disabled){ color: var(--ink); border-color: #D7D9E4; background: var(--surface-2); }
+
+.btn-accent{
+  background: var(--accent-bright);
+  color: var(--white);
+  box-shadow: 0 6px 16px rgba(109,99,255,0.28);
+}
+.btn-accent:hover:not(:disabled){ background: var(--accent); }
+
+.btn-sm{ padding: 7px 12px; font-size: 12.5px; border-radius: var(--radius-sm); }
+
+.btn-remove{
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+}
+.btn-remove:hover{ color: var(--danger); background: var(--danger-wash); }
+
+.btn-add-item{
+  width: 100%;
+  background: transparent;
+  border: 1.5px dashed var(--border);
+  color: var(--ink-soft);
+  font-weight: 600;
+  font-size: 13.5px;
+  padding: 13px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: border-color 0.15s var(--ease), color 0.15s var(--ease), background 0.15s var(--ease);
+}
+.btn-add-item:hover{ border-color: var(--accent); color: var(--accent); background: var(--accent-wash); }
+
+.container{
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 var(--sp-6);
+}
+@media (max-width: 640px){
+  .container{ padding: 0 var(--sp-4); }
+}
