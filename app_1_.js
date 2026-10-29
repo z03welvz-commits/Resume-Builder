@@ -507,42 +507,79 @@ function checkSummaryText(text){
 
 /* ════════════════════════════════════════════════════════════════
    AI SEAM — single chokepoint for every Groq call in this app
-   (grammar/wording, paraphrasing, JD keyword tailoring all funnel
-   through callAI()). Nothing else in this file talks to the network
-   directly.
+   (grammar/wording, paraphrasing, JD keyword tailoring, resume
+   import all funnel through callAI()). Nothing else in this file
+   talks to the network directly.
 
-   KEY PLACEMENT — READ THIS BEFORE SHARING THIS FILE WITH ANYONE:
-   GROQ_API_KEY below is a real, live credential in plain text. Groq's
-   API accepts direct browser calls (verified — no CORS block), so
-   this works with no backend/proxy needed. That also means anyone who
-   opens this file in a text editor, or opens devtools on the page,
-   can read the key and use it on your account. This is only an
-   acceptable tradeoff because this copy of the app stays on one
-   machine, for one person, and is never zipped up, emailed, committed
-   to git, or otherwise handed to anyone else. The moment that stops
-   being true, swap this back to a server-side proxy instead (ask
-   Claude to restore that version).
+   API KEY — where it comes from (first match wins):
+     1. config.local.js  → window.RESUME_BUILDER_CONFIG.groqApiKey
+        (gitignored; see config.local.example.js)
+     2. This browser's localStorage, set by clicking the AI badge.
+   The key is deliberately NOT stored in this file: the repository is
+   public, and anything written here gets committed. Groq accepts direct
+   browser calls (no CORS block), so no backend/proxy is needed — which
+   also means the key is visible in devtools of whatever browser it is
+   loaded in. Fine for one person on their own machine; do not host a
+   copy with a real key in it.
+
+   MODEL — resolved at runtime, not hardcoded. Groq retires models
+   (llama-3.3-70b-versatile was shut down 2026-08-16), so the probe asks
+   /models what this account can actually use and picks the first
+   available entry from AI_MODEL_CANDIDATES (or config groqModel).
    ════════════════════════════════════════════════════════════════ */
-const GROQ_API_KEY = ''; // <-- put your real key here (never commit a real key to git — see comment block above)
 const AI_ENDPOINT = 'https://api.groq.com/openai/v1/chat/completions';
-const AI_MODEL = 'llama-3.3-70b-versatile';
+const AI_MODELS_ENDPOINT = 'https://api.groq.com/openai/v1/models';
+const AI_MODEL_CANDIDATES = [
+  'openai/gpt-oss-120b',
+  'openai/gpt-oss-20b',
+  'llama-3.3-70b-versatile',
+  'qwen/qwen3.6-27b',
+];
+const AI_KEY_STORAGE = 'resume_builder_groq_key';
+const AI_CALL_TIMEOUT_MS = 45000;
+const AI_PROBE_TIMEOUT_MS = 10000;
+const AI_RECHECK_MS = 60000;
+let AI_MODEL = null; // resolved by checkAiConnection(); null = none usable yet
+
+function getAiConfig(){
+  try{ return (window.RESUME_BUILDER_CONFIG && typeof window.RESUME_BUILDER_CONFIG === 'object') ? window.RESUME_BUILDER_CONFIG : {}; }
+  catch(e){ return {}; }
+}
+
+function getGroqKey(){
+  const cfgKey = getAiConfig().groqApiKey;
+  if(typeof cfgKey === 'string' && cfgKey.trim()) return cfgKey.trim();
+  try{ return (localStorage.getItem(AI_KEY_STORAGE) || '').trim(); }
+  catch(e){ return ''; }
+}
 
 /* ── AI connection status ──
    Small badge (landing nav + builder toolbar) showing whether AI
-   features are actually usable right now, so a blank/bad key or a
-   network problem is visible immediately instead of only showing up
-   as "suggestions seem worse than expected" after the fact. */
-let aiStatus = { state: 'checking', detail: 'Checking AI connection…' };
+   features are actually usable right now. It reflects real behavior:
+   a startup probe, a re-probe every AI_RECHECK_MS while the tab is
+   visible, re-probes on online/offline and tab-focus, and every real
+   AI call updates it with what actually happened. Clicking it re-checks
+   (or, if no key is set, prompts for one). */
+let aiStatus = { state: 'checking', detail: 'Checking AI connection…', at: 0 };
 const AI_STATUS_META = {
-  'not-configured': { dot: '○', label: 'AI: not set up', cls: 'ai-status-off' },
-  'checking':       { dot: '◌', label: 'AI: checking…', cls: 'ai-status-checking' },
-  'connected':      { dot: '●', label: 'AI: connected', cls: 'ai-status-on' },
-  'unavailable':    { dot: '●', label: 'AI: unavailable', cls: 'ai-status-error' },
+  'not-configured': { dot: '○', label: 'AI: not set up',     cls: 'ai-status-off' },
+  'checking':       { dot: '◌', label: 'AI: checking…',      cls: 'ai-status-checking' },
+  'connected':      { dot: '●', label: 'AI: connected',      cls: 'ai-status-on' },
+  'limited':        { dot: '●', label: 'AI: rate-limited',   cls: 'ai-status-error' },
+  'unavailable':    { dot: '●', label: 'AI: unavailable',    cls: 'ai-status-error' },
 };
+
+function aiStatusTitle(){
+  const meta = AI_STATUS_META[aiStatus.state] || AI_STATUS_META.unavailable;
+  const base = aiStatus.detail || meta.label;
+  const when = aiStatus.at ? ` (checked ${new Date(aiStatus.at).toLocaleTimeString()})` : '';
+  const hint = aiStatus.state === 'not-configured' ? ' Click to add your key.' : ' Click to re-check.';
+  return base + when + hint;
+}
 
 function aiStatusBadgeHTML(){
   const meta = AI_STATUS_META[aiStatus.state] || AI_STATUS_META.unavailable;
-  return `<span class="ai-status-badge ${meta.cls}" title="${esc(aiStatus.detail || meta.label)}">${meta.dot} ${meta.label}</span>`;
+  return `<span class="ai-status-badge ${meta.cls}" title="${esc(aiStatusTitle())}">${meta.dot} ${meta.label}</span>`;
 }
 
 function syncNavAiStatus(){
@@ -551,11 +588,11 @@ function syncNavAiStatus(){
   const meta = AI_STATUS_META[aiStatus.state] || AI_STATUS_META.unavailable;
   el.className = `ai-status-badge ${meta.cls}`;
   el.textContent = `${meta.dot} ${meta.label}`;
-  el.title = aiStatus.detail || meta.label;
+  el.title = aiStatusTitle();
 }
 
 function setAiStatus(state, detail){
-  aiStatus = { state, detail: detail || '' };
+  aiStatus = { state, detail: detail || '', at: Date.now() };
   syncNavAiStatus();
   // renderToolbar() rewrites #toolbarLeft wholesale — safe to call even
   // before the builder is ever entered, it just paints into a hidden
@@ -563,81 +600,217 @@ function setAiStatus(state, detail){
   if(typeof renderToolbar === 'function') renderToolbar();
 }
 
-// One-time startup probe — hits Groq's model-list endpoint (a plain
-// GET, no completion tokens spent) purely to confirm the key is valid
-// and the service is reachable, rather than waiting for the user's
-// first real AI call to find out.
-async function checkAiConnection(){
-  if(!GROQ_API_KEY){
-    setAiStatus('not-configured', 'No API key set — add yours to GROQ_API_KEY near the top of app_1_.js to enable AI features.');
+// fetch with a hard timeout, so a hung connection can't leave the UI
+// sitting on "Rewriting…" forever.
+async function aiFetch(url, init, timeoutMs){
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  try{ return await fetch(url, { ...init, signal: ctrl.signal }); }
+  finally{ clearTimeout(timer); }
+}
+
+// Probe — hits Groq's model-list endpoint (a plain GET, no completion
+// tokens spent). Confirms the key is valid, the service is reachable,
+// AND that a usable model exists on this account, then remembers which
+// one callAI() should use. Concurrent calls share one in-flight probe.
+let _aiProbeInFlight = null;
+function checkAiConnection(){
+  if(!_aiProbeInFlight){
+    _aiProbeInFlight = _probeAi().finally(() => { _aiProbeInFlight = null; });
+  }
+  return _aiProbeInFlight;
+}
+
+async function _probeAi(){
+  const key = getGroqKey();
+  if(!key){
+    AI_MODEL = null;
+    setAiStatus('not-configured', 'No Groq API key set — AI features are off.');
     return;
   }
-  setAiStatus('checking', 'Checking AI connection…');
-  try{
-    const res = await fetch('https://api.groq.com/openai/v1/models', {
-      headers: { 'Authorization': `Bearer ${GROQ_API_KEY}` },
-    });
-    if(res.ok){
-      setAiStatus('connected', 'AI is connected — Groq API key is valid and reachable.');
-    }else if(res.status === 401 || res.status === 403){
-      setAiStatus('unavailable', 'AI key rejected — check GROQ_API_KEY is correct in app_1_.js. Falling back to the local checker.');
-    }else{
-      setAiStatus('unavailable', `AI service returned an error (${res.status}). Falling back to the local checker.`);
-    }
-  }catch(e){
-    setAiStatus('unavailable', 'Could not reach the AI service — check your internet connection. Falling back to the local checker.');
+  if(typeof navigator !== 'undefined' && navigator.onLine === false){
+    setAiStatus('unavailable', 'You appear to be offline — AI features will use the local checker until you reconnect.');
+    return;
   }
+  // Don't flash "checking…" over a healthy badge on routine re-probes.
+  if(aiStatus.state !== 'connected') setAiStatus('checking', 'Checking AI connection…');
+  try{
+    const res = await aiFetch(AI_MODELS_ENDPOINT, { headers: { 'Authorization': `Bearer ${key}` } }, AI_PROBE_TIMEOUT_MS);
+    if(res.status === 401 || res.status === 403){
+      AI_MODEL = null;
+      setAiStatus('unavailable', 'Groq rejected the API key — check it is correct.');
+      return;
+    }
+    if(res.status === 429){
+      setAiStatus('limited', 'Groq rate limit reached — AI will recover on its own; using the local checker meanwhile.');
+      return;
+    }
+    if(!res.ok){
+      AI_MODEL = null;
+      setAiStatus('unavailable', `Groq returned an error (${res.status}).`);
+      return;
+    }
+    const data = await res.json().catch(() => null);
+    const ids = Array.isArray(data?.data) ? data.data.map(m => m && m.id).filter(Boolean) : [];
+    const preferred = getAiConfig().groqModel;
+    const pick = [preferred, ...AI_MODEL_CANDIDATES].find(m => m && ids.includes(m));
+    if(!pick){
+      AI_MODEL = null;
+      setAiStatus('unavailable', 'Key is valid, but none of the supported models are available on this Groq account.');
+      return;
+    }
+    AI_MODEL = pick;
+    setAiStatus('connected', `AI is connected — key valid, using ${pick}.`);
+  }catch(e){
+    setAiStatus('unavailable', e && e.name === 'AbortError'
+      ? 'Groq did not respond in time — will retry automatically.'
+      : 'Could not reach Groq — check your internet connection.');
+  }
+}
+
+// Keeps the badge honest over time instead of only checking once.
+let _aiMonitorStarted = false;
+function startAiStatusMonitor(){
+  if(_aiMonitorStarted) return;
+  _aiMonitorStarted = true;
+  setInterval(() => { if(!document.hidden) checkAiConnection(); }, AI_RECHECK_MS);
+  window.addEventListener('online', () => checkAiConnection());
+  window.addEventListener('offline', () => {
+    setAiStatus('unavailable', 'You appear to be offline — AI features will use the local checker until you reconnect.');
+  });
+  document.addEventListener('visibilitychange', () => {
+    if(!document.hidden && Date.now() - (aiStatus.at || 0) > 30000) checkAiConnection();
+  });
+  // Badge click: no key → ask for one; otherwise force a re-check.
+  document.addEventListener('click', (ev) => {
+    const badge = ev.target && ev.target.closest && ev.target.closest('.ai-status-badge');
+    if(!badge) return;
+    if(aiStatus.state === 'not-configured') promptForGroqKey();
+    else checkAiConnection();
+  });
+}
+
+function promptForGroqKey(){
+  const entered = window.prompt(
+    'Paste your Groq API key. It is saved only in this browser (not in the app files).\nLeave empty to remove a saved key.',
+    ''
+  );
+  if(entered === null) return; // cancelled
+  try{
+    const trimmed = entered.trim();
+    if(trimmed) localStorage.setItem(AI_KEY_STORAGE, trimmed);
+    else localStorage.removeItem(AI_KEY_STORAGE);
+  }catch(e){
+    if(typeof showToast === 'function') showToast("Couldn't save the key in this browser — use config.local.js instead.", 'error');
+    return;
+  }
+  checkAiConnection();
 }
 
 // Thin wrapper around one chat-completion call. `messages` is the
 // standard [{role, content}] array. Returns the assistant's raw text
 // reply, or throws — callers decide how to surface failures (the
 // writing panel falls back to the local checker; the JD panel shows
-// a toast). Also keeps the status badge in sync with how the AI is
-// actually behaving right now, not just the startup probe.
+// a toast). Keeps the status badge in sync with how the AI is
+// actually behaving right now, not just the periodic probe.
 async function callAI(messages, { json = false, maxTokens = 800 } = {}){
+  const key = getGroqKey();
+  if(!key){
+    setAiStatus('not-configured', 'No Groq API key set — AI features are off.');
+    throw new Error('AI not configured: no Groq API key');
+  }
+  if(!AI_MODEL){
+    await checkAiConnection();
+    if(!AI_MODEL) throw new Error(`AI unavailable: ${aiStatus.detail}`);
+  }
+  const model = AI_MODEL;
+  // gpt-oss models spend part of the token budget on hidden reasoning;
+  // keep it short and leave headroom so the JSON answer isn't truncated.
+  const isGptOss = /gpt-oss/i.test(model);
+  const body = {
+    model,
+    max_tokens: maxTokens + (isGptOss ? 1024 : 0),
+    temperature: 0.4,
+    messages,
+    ...(isGptOss ? { reasoning_effort: 'low', include_reasoning: false } : {}),
+    ...(json ? { response_format: { type: 'json_object' } } : {}),
+  };
+  const post = () => aiFetch(AI_ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+    body: JSON.stringify(body),
+  }, AI_CALL_TIMEOUT_MS);
+
   let res;
   try{
-    res = await fetch(AI_ENDPOINT, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${GROQ_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: AI_MODEL,
-        max_tokens: maxTokens,
-        temperature: 0.4,
-        messages,
-        ...(json ? { response_format: { type: 'json_object' } } : {}),
-      }),
-    });
+    res = await post();
   }catch(e){
-    setAiStatus('unavailable', 'Could not reach the AI service — check your internet connection. Falling back to the local checker.');
+    setAiStatus('unavailable', e && e.name === 'AbortError'
+      ? 'The AI request timed out — will retry automatically.'
+      : 'Could not reach Groq — check your internet connection.');
     throw e;
   }
+
+  let errText = '';
   if(!res.ok){
-    const errText = await res.text().catch(() => '');
-    setAiStatus('unavailable', `Last AI call failed (${res.status}). Falling back to the local checker.`);
+    errText = await res.text().catch(() => '');
+    // Some models reject JSON mode — retry once without it; callAIJson
+    // already tolerates fenced / chatty replies.
+    if(res.status === 400 && json && /response_format|json/i.test(errText)){
+      delete body.response_format;
+      try{ res = await post(); }
+      catch(e){
+        setAiStatus('unavailable', 'Could not reach Groq — check your internet connection.');
+        throw e;
+      }
+      errText = res.ok ? '' : await res.text().catch(() => '');
+    }
+  }
+
+  if(!res.ok){
+    if(res.status === 401 || res.status === 403){
+      AI_MODEL = null;
+      setAiStatus('unavailable', 'Groq rejected the API key — check it is correct.');
+    }else if(res.status === 429){
+      setAiStatus('limited', 'Groq rate limit reached — using the local checker; AI will recover on its own.');
+    }else if(res.status === 404 || (/model/i.test(errText) && /(not found|decommission|deprecat|does not exist|no longer)/i.test(errText))){
+      // Model was retired / removed since the last probe — rediscover.
+      AI_MODEL = null;
+      setAiStatus('unavailable', `Model ${model} is no longer available — looking for another…`);
+      checkAiConnection();
+    }else{
+      setAiStatus('unavailable', `The last AI call failed (${res.status}).`);
+    }
     throw new Error(`AI request failed (${res.status}): ${errText.slice(0,200)}`);
   }
-  const data = await res.json();
+
+  const data = await res.json().catch(() => null);
   const text = data?.choices?.[0]?.message?.content;
-  if(typeof text !== 'string'){
-    setAiStatus('unavailable', 'AI responded with no usable content. Falling back to the local checker.');
+  if(typeof text !== 'string' || !text.trim()){
+    setAiStatus('unavailable', 'The AI replied with no usable content — will retry on the next request.');
     throw new Error('AI response had no content');
   }
-  setAiStatus('connected', 'AI is connected — Groq API key is valid and reachable.');
+  setAiStatus('connected', `AI is connected — key valid, using ${model}.`);
   return text;
 }
 
-
 // Same contract as callAI but parses the reply as JSON, stripping
-// stray ```json fences some models add despite instructions.
+// stray ```json fences and <think> blocks some models add despite
+// instructions, and falling back to the outermost {...} if there is
+// chatter around it.
 async function callAIJson(messages, opts = {}){
   const raw = await callAI(messages, { ...opts, json: true });
-  const cleaned = raw.replace(/^```json\s*|```$/g, '').trim();
-  return JSON.parse(cleaned);
+  const cleaned = raw
+    .replace(/<think>[\s\S]*?<\/think>/gi, '')
+    .replace(/^\s*```(?:json)?\s*|\s*```\s*$/gi, '')
+    .trim();
+  try{
+    return JSON.parse(cleaned);
+  }catch(e){
+    const a = cleaned.indexOf('{'), b = cleaned.lastIndexOf('}');
+    if(a > -1 && b > a) return JSON.parse(cleaned.slice(a, b + 1));
+    throw e;
+  }
 }
 
 // ── Provider seam ──
@@ -646,7 +819,7 @@ async function callAIJson(messages, opts = {}){
 // bring in a real model later (e.g. a self-hosted Llama endpoint).
 // Nothing that calls getSuggestions() needs to know which one is live.
 const SUGGESTION_PROVIDERS = { local: suggestionsLocal, ai: suggestionsAI };
-let ACTIVE_PROVIDER = 'ai'; // calls Groq directly using GROQ_API_KEY above; falls back to 'local' automatically if a call fails
+let ACTIVE_PROVIDER = 'ai'; // calls Groq directly via callAI() above; falls back to 'local' automatically if a call fails
 async function getSuggestions(fieldType, text, context){
   try{
     return await SUGGESTION_PROVIDERS[ACTIVE_PROVIDER](fieldType, text, context);
@@ -2595,5 +2768,6 @@ function exportPdf(){
   renderStep();
   syncNavAiStatus();
   checkAiConnection();
+  startAiStatusMonitor();
   if(restored) showToast('Restored your previous progress.', 'success');
 })();

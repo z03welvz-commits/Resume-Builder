@@ -1,0 +1,2 @@
+# Holds your real Groq API key — never commit
+config.local.js

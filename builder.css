@@ -977,7 +977,7 @@ body.ai-import-open{ overflow: hidden; }
 /* ════════════════════════════════════════════════════════════════
    AI STATUS BADGE — landing nav (#navAiStatus) + builder toolbar
    (rendered inline by app_1_.js's renderToolbar). Reflects whether
-   GROQ_API_KEY is set and whether the last check/call actually
+   a Groq API key is set and whether the last check/call actually
    succeeded, so a blank/bad key is visible instead of silently
    falling back to the local checker with no explanation.
    ════════════════════════════════════════════════════════════════ */
@@ -990,7 +990,7 @@ body.ai-import-open{ overflow: hidden; }
   padding: 4px 10px;
   border-radius: 100px;
   white-space: nowrap;
-  cursor: default;
+  cursor: pointer; /* click = re-check, or add a key when none is set */
 }
 .ai-status-off{
   color: var(--muted);
