@@ -541,6 +541,20 @@ const AI_PROBE_TIMEOUT_MS = 10000;
 const AI_RECHECK_MS = 60000;
 let AI_MODEL = null; // resolved by checkAiConnection(); null = none usable yet
 
+/* MASTER SWITCH — AI features are PAUSED by default ("coming soon").
+   While off: no request ever leaves the browser, no key is asked for, the
+   badge reads "AI: coming soon", AI-only controls are disabled and
+   labelled, and everything else uses the built-in local checker. All the
+   AI code below is kept intact so it can be switched back on later by
+   setting `aiEnabled: true` in config.local.js (no code change needed),
+   or by flipping AI_ENABLED_DEFAULT. */
+const AI_ENABLED_DEFAULT = false;
+const AI_PAUSED_DETAIL = 'AI features are paused for now (coming soon). The built-in checker is used instead, and nothing leaves this browser.';
+function aiEnabled(){
+  const v = getAiConfig().aiEnabled;
+  return typeof v === 'boolean' ? v : AI_ENABLED_DEFAULT;
+}
+
 function getAiConfig(){
   try{ return (window.RESUME_BUILDER_CONFIG && typeof window.RESUME_BUILDER_CONFIG === 'object') ? window.RESUME_BUILDER_CONFIG : {}; }
   catch(e){ return {}; }
@@ -560,8 +574,11 @@ function getGroqKey(){
    visible, re-probes on online/offline and tab-focus, and every real
    AI call updates it with what actually happened. Clicking it re-checks
    (or, if no key is set, prompts for one). */
-let aiStatus = { state: 'checking', detail: 'Checking AI connection…', at: 0 };
+let aiStatus = aiEnabled()
+  ? { state: 'checking', detail: 'Checking AI connection…', at: 0 }
+  : { state: 'paused', detail: AI_PAUSED_DETAIL, at: 0 };
 const AI_STATUS_META = {
+  'paused':         { dot: '○', label: 'AI: coming soon',    cls: 'ai-status-off ai-status-paused' },
   'not-configured': { dot: '○', label: 'AI: not set up',     cls: 'ai-status-off' },
   'checking':       { dot: '◌', label: 'AI: checking…',      cls: 'ai-status-checking' },
   'connected':      { dot: '●', label: 'AI: connected',      cls: 'ai-status-on' },
@@ -572,6 +589,7 @@ const AI_STATUS_META = {
 function aiStatusTitle(){
   const meta = AI_STATUS_META[aiStatus.state] || AI_STATUS_META.unavailable;
   const base = aiStatus.detail || meta.label;
+  if(aiStatus.state === 'paused') return base; // nothing to check or click
   const when = aiStatus.at ? ` (checked ${new Date(aiStatus.at).toLocaleTimeString()})` : '';
   const hint = aiStatus.state === 'not-configured' ? ' Click to add your key.' : ' Click to re-check.';
   return base + when + hint;
@@ -622,6 +640,11 @@ function checkAiConnection(){
 }
 
 async function _probeAi(){
+  if(!aiEnabled()){
+    AI_MODEL = null;
+    if(aiStatus.state !== 'paused') setAiStatus('paused', AI_PAUSED_DETAIL);
+    return;
+  }
   const key = getGroqKey();
   if(!key){
     AI_MODEL = null;
@@ -671,7 +694,7 @@ async function _probeAi(){
 // Keeps the badge honest over time instead of only checking once.
 let _aiMonitorStarted = false;
 function startAiStatusMonitor(){
-  if(_aiMonitorStarted) return;
+  if(_aiMonitorStarted || !aiEnabled()) return; // paused: no timers, no listeners, no prompts
   _aiMonitorStarted = true;
   setInterval(() => { if(!document.hidden) checkAiConnection(); }, AI_RECHECK_MS);
   window.addEventListener('online', () => checkAiConnection());
@@ -714,6 +737,7 @@ function promptForGroqKey(){
 // a toast). Keeps the status badge in sync with how the AI is
 // actually behaving right now, not just the periodic probe.
 async function callAI(messages, { json = false, maxTokens = 800 } = {}){
+  if(!aiEnabled()) throw new Error('AI features are paused'); // hard stop: never touch the network
   const key = getGroqKey();
   if(!key){
     setAiStatus('not-configured', 'No Groq API key set — AI features are off.');
@@ -821,6 +845,8 @@ async function callAIJson(messages, opts = {}){
 const SUGGESTION_PROVIDERS = { local: suggestionsLocal, ai: suggestionsAI };
 let ACTIVE_PROVIDER = 'ai'; // calls Groq directly via callAI() above; falls back to 'local' automatically if a call fails
 async function getSuggestions(fieldType, text, context){
+  // Paused → go straight to the local checker (no AI attempt, no fallback noise).
+  if(!aiEnabled()) return suggestionsLocal(fieldType, text, context);
   try{
     return await SUGGESTION_PROVIDERS[ACTIVE_PROVIDER](fieldType, text, context);
   }catch(e){
@@ -946,6 +972,7 @@ Respond ONLY with JSON: {"bullets":["line one","line two", ...]}. Maximum ${MAX_
 let _pendingRewrite = null; // { key, index, bullets } for whichever card is mid-preview
 
 async function startSectionRewrite(key, i){
+  if(!aiEnabled()){ showToast('AI rewriting is coming soon', 'error'); return; }
   const fieldId = key === 'experience' ? `exp_desc_${i}` : `proj_desc_${i}`;
   const btn = $(`rewriteBtn_${key}_${i}`);
   const slot = $(`rewriteSlot_${key}_${i}`);
@@ -1023,6 +1050,7 @@ function discardRewrite(key, i){
 let _pendingJdSuggestionRewrite = null; // { idx, key, i, bullets }
 
 async function applyJdSuggestion(idx){
+  if(!aiEnabled()){ showToast('AI suggestions are coming soon', 'error'); return; }
   const jd = _resumeAnalysis?.jd;
   const s = jd?.suggestions?.[idx];
   if(!s || !s.targetField) return;
@@ -1241,8 +1269,9 @@ async function runResumeAnalysis(){
   const slot = $('analyzeResultSlot');
   if(!slot) return;
 
+  const aiOn = aiEnabled();
   if(btn){ btn.disabled = true; btn.textContent = 'Analyzing…'; }
-  slot.innerHTML = `<div class="rewrite-preview rewrite-loading">Analyzing grammar, wording, and keywords…</div>`;
+  slot.innerHTML = `<div class="rewrite-preview rewrite-loading">${aiOn ? 'Analyzing grammar, wording, and keywords…' : 'Analyzing grammar and wording…'}</div>`;
 
   try{
     // Read the JD textarea's live value directly rather than trusting
@@ -1250,9 +1279,11 @@ async function runResumeAnalysis(){
     // can lag behind (or be skipped by some paste paths) a click that
     // follows immediately after pasting, which was causing Analyze to
     // run with an empty JD even though text was visibly in the box.
-    const liveJd = gv('jd_text');
+    const liveJd = aiOn ? gv('jd_text') : '';
     if(liveJd) state.data.jd = liveJd;
-    const jdText = (state.data.jd || '').trim();
+    // Keyword matching is AI-only (no local fallback), so while AI is
+    // paused it is skipped entirely — a saved JD stays saved, untouched.
+    const jdText = aiOn ? (state.data.jd || '').trim() : '';
 
     // Writing check across summary + experience + projects, and (if a
     // JD was pasted) the keyword match — run together so one button
@@ -1315,7 +1346,7 @@ function scoreStatusClass(score){
 // The ring's stroke-dashoffset is set inline so the arc length is a
 // literal, proportional read of the number inside it — the shape
 // *is* the score, not decoration next to it.
-function renderScoreRing(label, sub, result){
+function renderScoreRing(label, sub, result, pendingText = 'No JD yet'){
   const R = 45, C = 2 * Math.PI * R;
   if(!result){
     return `<div class="score-ring-card">
@@ -1324,7 +1355,7 @@ function renderScoreRing(label, sub, result){
           <circle class="score-ring-track" cx="54" cy="54" r="${R}"/>
           <circle class="score-ring-bar pending" cx="54" cy="54" r="${R}" stroke-dasharray="${C}" stroke-dashoffset="${C}"/>
         </svg>
-        <div class="score-ring-num pending">No JD yet</div>
+        <div class="score-ring-num pending">${esc(pendingText)}</div>
       </div>
       <div class="score-ring-label">${esc(label)}</div>
       <div class="score-ring-sub">${esc(sub)}</div>
@@ -1357,7 +1388,9 @@ function renderAnalyzeResults(){
   const cluster = `<div class="score-cluster">
     ${renderScoreRing('Overall Score', 'Format, content, and keyword fit combined', overallScore)}
     ${renderScoreRing('ATS Score', 'Can a parser read this document', atsScore)}
-    ${renderScoreRing('Keyword Match', jd ? 'Resume coverage of the pasted JD' : 'Paste a job description to unlock', keywordScore)}
+    ${aiEnabled()
+      ? renderScoreRing('Keyword Match', jd ? 'Resume coverage of the pasted JD' : 'Paste a job description to unlock', keywordScore)
+      : renderScoreRing('Keyword Match', 'AI keyword matching is paused for now', null, 'Coming soon')}
   </div>`;
 
   const reasonsBlock = (title, result) => `<div class="jd-report-block ats-score-block">
@@ -1420,12 +1453,12 @@ function renderAnalyzeResults(){
     : '';
   const aiSuggestBlock = `<div class="jd-report-block">
     <div class="jd-report-title-row">
-      <div class="jd-report-title">AI Suggestions${suggestCount ? ` (${suggestCount})` : ''}</div>
+      <div class="jd-report-title">${aiEnabled() ? 'AI Suggestions' : 'Suggestions'}${suggestCount ? ` (${suggestCount})` : ''}</div>
       ${selectAllControl}
     </div>
     ${suggestionRows
       ? `<div class="writing-panel" style="border:none;box-shadow:none;">${suggestionRows}</div>`
-      : `<div class="jd-empty-note">No suggestions right now — grammar, wording, and keyword fit all look solid.</div>`}
+      : `<div class="jd-empty-note">${aiEnabled() ? 'No suggestions right now — grammar, wording, and keyword fit all look solid.' : 'No suggestions right now — grammar and wording look solid.'}</div>`}
     ${fixableCount > 1 ? `<div id="bulkApplyBar" class="bulk-apply-bar" style="display:none;">
       <span id="bulkApplyCount">0 selected</span>
       <button class="btn btn-primary btn-sm" onclick="applySelectedFixes()">Apply selected</button>
@@ -1476,7 +1509,9 @@ function renderAnalyzeResults(){
       </div>
     `;
   } else {
-    keywordDetail = `<div class="jd-report-block"><div class="jd-empty-note">Paste a job description above and re-run analysis to get a keyword matching score and matched/missing keyword breakdown.</div></div>`;
+    keywordDetail = `<div class="jd-report-block"><div class="jd-empty-note">${aiEnabled()
+      ? 'Paste a job description above and re-run analysis to get a keyword matching score and matched/missing keyword breakdown.'
+      : 'Keyword matching against a job description is coming soon.'}</div></div>`;
   }
 
   slot.innerHTML = `
@@ -1837,6 +1872,16 @@ function applyWritingFix(idx){
   reconcileWritingFixesLocally([issue.fieldId]);
 }
 
+// The per-entry "Rewrite with AI" button. While AI is paused it renders as a
+// disabled "coming soon" control (no handler, no id) instead of disappearing,
+// so it is clear the feature exists and is on the way.
+function aiRewriteButton(key, i){
+  if(!aiEnabled()){
+    return `<button type="button" class="btn btn-secondary btn-sm rewrite-btn" disabled title="AI rewriting is coming soon" style="opacity:.6;cursor:not-allowed;">✦ AI rewrite — coming soon</button>`;
+  }
+  return `<button type="button" class="btn btn-secondary btn-sm rewrite-btn" onclick="startSectionRewrite('${key}',${i})" id="rewriteBtn_${key}_${i}">✦ Rewrite with AI</button>`;
+}
+
 function showToast(msg, type){
   const t = $('toast');
   t.textContent = msg;
@@ -1963,7 +2008,7 @@ function renderExperience(){
       <div class="field">
         <label style="display:flex;align-items:center;justify-content:space-between;">
           <span>Achievements</span>
-          <button type="button" class="btn btn-secondary btn-sm rewrite-btn" onclick="startSectionRewrite('experience',${i})" id="rewriteBtn_experience_${i}">✦ Rewrite with AI</button>
+          ${aiRewriteButton('experience', i)}
         </label>
         <textarea id="exp_desc_${i}" rows="4" placeholder="• Led migration to event-driven architecture, cutting p99 latency 40%..." oninput="saveField();autoBulletInput(event)" onkeydown="autoBulletKeydown(event)" onpaste="autoBulletPaste(event)">${esc(ex.description)}</textarea>
         <div id="rewriteSlot_experience_${i}"></div>
@@ -1996,7 +2041,7 @@ function renderProjects(){
       <div class="field">
         <label style="display:flex;align-items:center;justify-content:space-between;">
           <span>Description</span>
-          <button type="button" class="btn btn-secondary btn-sm rewrite-btn" onclick="startSectionRewrite('projects',${i})" id="rewriteBtn_projects_${i}">✦ Rewrite with AI</button>
+          ${aiRewriteButton('projects', i)}
         </label>
         <textarea id="proj_desc_${i}" rows="3" placeholder="• What it does and the outcome — a metric, an adoption number, a grade..." oninput="saveField();autoBulletInput(event)" onkeydown="autoBulletKeydown(event)" onpaste="autoBulletPaste(event)">${esc(p.description)}</textarea>
         <div id="rewriteSlot_projects_${i}"></div>
@@ -2071,9 +2116,12 @@ function renderCertifications(){
 
 function renderAnalyze(){
   const jd = state.data.jd || '';
-  let h = sectionHeader('Analyze Resume', 'Optionally paste a job description to also get a keyword match score. Then run the analysis to get an ATS score, grammar and wording review, and keyword matching — with one-click fixes.') + `
-    <div class="field"><label>Job Description (optional — enables keyword matching)</label>
-      <textarea id="jd_text" rows="8" placeholder="Paste the full job posting here to also get a keyword match score..." oninput="saveField()">${esc(jd)}</textarea>
+  const aiOn = aiEnabled();
+  let h = sectionHeader('Analyze Resume', aiOn
+    ? 'Optionally paste a job description to also get a keyword match score. Then run the analysis to get an ATS score, grammar and wording review, and keyword matching — with one-click fixes.'
+    : 'Run the analysis to get an ATS score and a grammar and wording review, with one-click fixes. Keyword matching against a job description is coming soon.') + `
+    <div class="field"><label>${aiOn ? 'Job Description (optional — enables keyword matching)' : 'Job Description — keyword matching coming soon'}</label>
+      <textarea id="jd_text" rows="8" ${aiOn ? '' : 'disabled'} placeholder="${aiOn ? 'Paste the full job posting here to also get a keyword match score...' : 'Keyword matching is paused for now.'}" oninput="saveField()">${esc(jd)}</textarea>
     </div>
     <button type="button" class="btn btn-primary btn-lg" id="analyzeBtn" onclick="runResumeAnalysis()">✦ Analyze Resume</button>
     <div id="analyzeResultSlot"></div>
@@ -2767,6 +2815,12 @@ function exportPdf(){
 
   renderStep();
   syncNavAiStatus();
+  // When AI is on, the landing line "Your data stays in this browser" would
+  // be untrue (editing text is sent to Groq), so say what actually happens.
+  if(aiEnabled()){
+    const mc = document.querySelector('.hero-microcopy');
+    if(mc) mc.textContent = 'Takes about 8 minutes. Your resume stays in this browser — except text you send to AI features, which is processed by Groq.';
+  }
   checkAiConnection();
   startAiStatusMonitor();
   if(restored) showToast('Restored your previous progress.', 'success');

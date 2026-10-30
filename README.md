@@ -1,27 +1,35 @@
 # Resume-Builder
 
-A browser-based resume builder (no build step — open `index.html`). AI features
-(grammar/wording review, section rewrites, job-description matching, paste-in
-resume import) call the Groq API directly from the browser and fall back to a
-local rule-based checker when AI is unavailable.
+A browser-based resume builder (no build step — open `index.html`). Everything
+works locally in the browser, including a rule-based grammar/wording checker,
+an ATS score and a local resume importer.
 
-## Enabling AI
+## AI features — paused ("coming soon")
 
-The app needs a [Groq API key](https://console.groq.com/keys). It is never
-stored in the app files, because this repository is public. Use either:
+AI features (AI grammar review, section rewrites, job-description keyword
+matching, AI resume import) are **paused by default**. While paused:
 
-1. **`config.local.js`** — copy `config.local.example.js` to `config.local.js`
-   and set `groqApiKey`. The file is gitignored.
-2. **The badge** — click **AI: not set up** in the app and paste the key. It is
-   saved in that browser only.
+- no request ever leaves the browser, and no API key is needed;
+- the badge reads **AI: coming soon**;
+- AI-only controls are disabled and labelled (AI rewrite, keyword matching);
+- the built-in local checker and local importer are used instead.
 
-## The AI status badge
+All the AI code is kept in place. To turn it back on, copy
+`config.local.example.js` to `config.local.js` (gitignored), set
+`aiEnabled: true` and add your [Groq API key](https://console.groq.com/keys).
+You can also set the key by clicking the badge once AI is enabled; it is saved
+in that browser only. The key is never stored in the app files, because this
+repository is public.
 
-The badge reflects what is actually happening, not a fixed label:
+When AI is enabled the app sends the text you are editing to Groq for
+processing, and the landing page says so.
+
+### The AI status badge (when enabled)
 
 | Badge | Meaning |
 | --- | --- |
-| AI: not set up | No key found |
+| AI: coming soon | AI features are paused (default) |
+| AI: not set up | Enabled, but no key found |
 | AI: checking… | Probing Groq |
 | AI: connected | Key valid **and** a usable model was found (hover for the model and last-check time) |
 | AI: rate-limited | Groq returned 429; recovers automatically |

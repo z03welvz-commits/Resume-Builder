@@ -1009,6 +1009,7 @@ body.ai-import-open{ overflow: hidden; }
   color: var(--danger);
   background: var(--danger-wash);
 }
+.ai-status-paused{ cursor: default; } /* "coming soon": nothing to click */
 @keyframes aiStatusPulse{
   0%, 100%{ opacity: 1; }
   50%{ opacity: 0.5; }

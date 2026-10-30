@@ -495,15 +495,21 @@ PASTED RESUME TEXT:
 
     let parsed = null;
     let usedFallback = false;
-    try{
-      parsed = await parseResumeWithAI(text);
-      if(!parsedIsUsable(parsed)) throw new Error('empty AI parse');
-    }catch(e){
-      usedFallback = true;
+    // AI paused → parse on this device only; no request is made.
+    const aiOn = (typeof aiEnabled === 'function') ? aiEnabled() : true;
+    if(!aiOn){
+      try{ parsed = parseResumeLocally(text); }catch(e2){ parsed = null; }
+    }else{
       try{
-        parsed = parseResumeLocally(text);
-      }catch(e2){
-        parsed = null;
+        parsed = await parseResumeWithAI(text);
+        if(!parsedIsUsable(parsed)) throw new Error('empty AI parse');
+      }catch(e){
+        usedFallback = true;
+        try{
+          parsed = parseResumeLocally(text);
+        }catch(e2){
+          parsed = null;
+        }
       }
     }
 
@@ -515,6 +521,7 @@ PASTED RESUME TEXT:
 
     _importParsed = parsed;
     _importParsed._usedFallback = usedFallback;
+    _importParsed._localOnly = !aiOn;
     _importState = 'preview';
     renderImportModal();
   };
@@ -537,7 +544,7 @@ PASTED RESUME TEXT:
       return;
     }
 
-    const { _usedFallback, ...clean } = _importParsed;
+    const { _usedFallback, _localOnly, ...clean } = _importParsed;
     state.data = JSON.parse(JSON.stringify(clean));
     state.font = 'calibri'; // the app's preferred/safest default template
     if(typeof window.extSetLayout === 'function') window.extSetLayout('standard'); // reset the Layout extension too, if loaded
@@ -575,7 +582,9 @@ PASTED RESUME TEXT:
           </div>
           <div class="ext-modal-body ai-import-body">
             <textarea id="aiImportTextarea" class="ai-import-textarea" rows="16" placeholder="Paste the full resume text here — name, contact info, summary, experience, education, skills...">${esc(_importRawText)}</textarea>
-            <div class="ai-import-hint">Nothing here is saved until you review the parsed result and choose to import it. Your data stays in this browser except for the one parsing call.</div>
+            <div class="ai-import-hint">${(typeof aiEnabled === 'function' && !aiEnabled())
+              ? 'Nothing here is saved until you review the parsed result and choose to import it. Parsing happens on this device — nothing leaves your browser.'
+              : 'Nothing here is saved until you review the parsed result and choose to import it. Your data stays in this browser except for the one parsing call.'}</div>
           </div>
           <div class="ext-modal-foot">
             <span class="ext-modal-foot-note">Works best with a full resume, not just a snippet.</span>
@@ -638,7 +647,7 @@ PASTED RESUME TEXT:
         <div class="ext-modal-head">
           <div>
             <div class="ai-import-head-title">Here's what we found</div>
-            <div class="ai-import-head-sub">${d._usedFallback ? 'Parsed locally (AI parsing was unavailable) — double-check dates and section splits.' : 'Parsed with AI — review before importing, especially dates.'}</div>
+            <div class="ai-import-head-sub">${d._localOnly ? 'Parsed on this device — double-check dates and section splits.' : (d._usedFallback ? 'Parsed locally (AI parsing was unavailable) — double-check dates and section splits.' : 'Parsed with AI — review before importing, especially dates.')}</div>
           </div>
           <button type="button" class="ext-modal-close" id="aiImportCloseBtn3" aria-label="Close">✕</button>
         </div>
