@@ -4,6 +4,34 @@ A browser-based resume builder (no build step — open `index.html`). Everything
 works locally in the browser, including a rule-based grammar/wording checker,
 an ATS score and a local resume importer.
 
+## Templates
+
+Pick a template above the live preview.
+
+| Template | For | Notes |
+| --- | --- | --- |
+| **Classic** | Online applications (ATS) | The original single-column layout and ATS-safe fonts. Default. |
+| **Sidebar** | Physical applications | Coloured left panel (contact, skills, education) + main column. |
+| **Executive** | Physical applications | Centred serif header, hairline rules. |
+| **Banner** | Physical applications | Coloured header block, accent section bars, skill chips. |
+| **Timeline** | Physical applications | Dates on the left with a rail and dots. |
+
+The four print templates are made for paper: they use colour, columns and a
+wider choice of typefaces, so they are **not ATS-optimised**. The ATS score and
+Format Check say so when one is selected. Each has a six-colour accent picker
+and starts with a recommended font; the font dropdown lists the ATS-safe fonts
+plus eight print fonts (Inter, Poppins, Montserrat, Lato, Source Sans 3, Lora,
+Merriweather, Playfair Display). Print fonts load from Google Fonts the first
+time a print template is shown; offline, a similar system font is used.
+
+Export with **Export PDF**: text stays selectable, colours print without ticking
+"Background graphics", and the page auto-fits to one A4 sheet (never below
+9.5pt). The template, accent and font are remembered per browser.
+
+Everything for this lives in `extensions/print-templates.js` and
+`extensions/print-templates.css`; remove their two tags from `index.html` to
+return to Classic only.
+
 ## AI features — paused ("coming soon")
 
 AI features (AI grammar review, section rewrites, job-description keyword
