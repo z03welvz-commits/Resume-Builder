@@ -8,8 +8,7 @@
    edits app_1_.js itself. Removing this file (and its <script> tag)
    returns the app to exactly its original behavior.
 
-   Adds three things, per the earlier research pass in this
-   conversation:
+   Adds three things:
      1. Three more ATS-safe fonts (Cambria, Verdana, Tahoma).
         Garamond is deliberately NOT added — app_1_.js already
         excludes it on purpose (Workday line-width substitution

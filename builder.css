@@ -406,32 +406,6 @@ input[type="month"]{ color-scheme: light; }
   overflow: hidden;
   box-shadow: var(--shadow-sm);
 }
-.writing-panel-head{
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--sp-3) var(--sp-4);
-  cursor: pointer;
-  user-select: none;
-}
-.writing-panel-head:hover{ background: var(--surface-2); }
-.writing-panel-title{
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--ink-soft);
-}
-.writing-panel-chevron{
-  color: var(--muted);
-  font-size: 11px;
-  transition: transform 0.15s var(--ease);
-}
-.writing-panel-chevron.open{ transform: rotate(180deg); }
-.writing-panel-body{
-  border-top: 1px solid var(--border-soft);
-}
 .writing-issue{
   display: flex;
   align-items: flex-start;
@@ -493,15 +467,6 @@ input[type="month"]{ color-scheme: light; }
   color: var(--muted);
   white-space: nowrap;
   padding-top: 4px;
-}
-
-/* Rail badge — small dot indicating a section has open suggestions */
-.rail-step-flag{
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: var(--warn);
-  flex-shrink: 0;
-  margin-left: auto;
 }
 
 /* Brief highlight pulse when a writing-check row scrolls a field into view */

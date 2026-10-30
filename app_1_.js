@@ -2,7 +2,8 @@
 
 /* ════════════════════════════════════════════════════════════════
    PHASE 1 — DATA MODEL
-   Verified section order (research-backed, see conversation):
+   Section order (the conventional reverse-chronological order that
+   recruiters and ATS parsers expect):
    Header → Summary → Skills (Technical + Core Competencies) →
    Experience → Projects → Education → Certifications
    ════════════════════════════════════════════════════════════════ */
@@ -18,7 +19,8 @@ const STEPS = [
   { id:'analyze',       label:'Analyze Resume',      icon:'●' },
 ];
 
-// Fonts vetted against the ATS font research in this conversation.
+// ATS-safe fonts for the Classic template (the print templates add their own
+// fonts in extensions/print-templates.js).
 // Garamond intentionally excluded — silently substituted by Workday,
 // which shifts line widths mid-bullet. Sans-serif prioritized: sans
 // averaged higher parse-completeness than serif across tested engines.
@@ -49,12 +51,15 @@ function newEducation(){
 function newCertification(){
   return { name:'', issuer:'', date:'', id:'' };
 }
+function newPersonal(){
+  return { name:'', title:'', email:'', phone:'', city:'', linkedin:'', portfolio:'' };
+}
 
 const state = {
   currentStep: 0,
   font: 'calibri',
   data: {
-    personal: { name:'', title:'', email:'', phone:'', city:'', linkedin:'', portfolio:'' },
+    personal: newPersonal(),
     summary: '',
     skills: { technical: [], core: [] },
     experience: [],
@@ -67,9 +72,9 @@ const state = {
 
 /* ════════════════════════════════════════════════════════════════
    SHARED FORMATTERS — single source of truth.
-   This is the direct fix for the audited bug: ProDocs rebuilt its
-   contact-line array 8 separate times across templates/exports, and
-   one of those copies silently dropped a collected field (address).
+   Contact details used to be rebuilt separately in each template/export,
+   and one copy could silently drop a collected field. Defining the field
+   list and order once here prevents that drift.
    Every consumer below — HTML preview AND PDF export — calls these
    same functions. Add/change a field once, it's correct everywhere.
    ════════════════════════════════════════════════════════════════ */
@@ -139,8 +144,7 @@ function formatDateRange(start, end, current){
   return s || e || '';
 }
 
-// HTML-escape — single copy (the audited app had two identical ones:
-// esc() and escHtml()). Used for every user-entered value rendered
+// HTML-escape — the single copy in the app. Used for every user-entered value rendered
 // into innerHTML in both the form UI and the live preview.
 function esc(s){
   return (s || '').toString()
@@ -2446,9 +2450,9 @@ function findUnsafeCharacterField(){
 
 /* ── ATS SAFETY PANEL ──
    Deliberately not a fabricated score. Every line here is a real,
-   checkable property of THIS document's structure — matched against
-   the ATS format rules verified in this conversation — not a
-   heuristic percentage presented as authoritative (see ProDocs audit). */
+   checkable property of THIS document's structure, matched against
+   common ATS formatting guidance — not a heuristic percentage
+   presented as authoritative. */
 function getFormatChecks(){
   const d = state.data;
   const font = getFont();
@@ -2597,6 +2601,46 @@ function computeOverallScore(atsResult, completenessResult, keywordResult){
   return { score: Math.max(0, Math.min(100, Math.round(score))), reasons: reasons.slice(0, 6) };
 }
 
+/* ── DATA SANITIZER ──
+   Everything that enters state.data from outside the form — saved state in
+   localStorage, an imported JSON file — passes through here first. The
+   rest of the app calls .trim()/.join()/.filter() on these values, so a
+   wrong-typed field (a number, null, a string where a list belongs) used
+   to throw during render; since saved state reloads on every visit, that
+   left the app broken until the browser's site data was cleared.
+   It is a whitelist built from the new*() factories, so unknown keys
+   (including "__proto__") are dropped, every field has the right type, and
+   it stays in sync automatically when a factory gains a field. */
+const MAX_LIST_ITEMS = 50;
+const MAX_SKILLS = 200;
+function sanitizeResumeData(raw){
+  const isObj = v => v !== null && typeof v === 'object' && !Array.isArray(v);
+  const src = isObj(raw) ? raw : {};
+  const str = v => (typeof v === 'string') ? v : ((typeof v === 'number' && Number.isFinite(v)) ? String(v) : '');
+  const record = (v, template) => {
+    const o = isObj(v) ? v : {};
+    const out = {};
+    Object.keys(template).forEach(k => { out[k] = (typeof template[k] === 'boolean') ? (o[k] === true) : str(o[k]); });
+    return out;
+  };
+  const records = (v, factory) => Array.isArray(v) ? v.slice(0, MAX_LIST_ITEMS).map(it => record(it, factory())) : [];
+  const skillList = v => {
+    const items = Array.isArray(v) ? v : (typeof v === 'string' ? v.split(/[,;\n]/) : []);
+    return items.map(str).map(s => s.trim()).filter(Boolean).slice(0, MAX_SKILLS);
+  };
+  const sk = isObj(src.skills) ? src.skills : {};
+  return {
+    personal: record(src.personal, newPersonal()),
+    summary: str(src.summary),
+    skills: { technical: skillList(sk.technical), core: skillList(sk.core) },
+    experience: records(src.experience, newExperience),
+    projects: records(src.projects, newProject),
+    education: records(src.education, newEducation),
+    certifications: records(src.certifications, newCertification),
+    jd: str(src.jd),
+  };
+}
+
 /* ── PERSISTENCE ── */
 function saveLS(){
   try{ localStorage.setItem('resumeBuilderState', JSON.stringify({ font: state.font, data: state.data })); }
@@ -2607,14 +2651,9 @@ function loadLS(){
     const raw = localStorage.getItem('resumeBuilderState');
     if(!raw) return false;
     const parsed = JSON.parse(raw);
-    if(parsed.font) state.font = parsed.font;
-    if(parsed.data) Object.assign(state.data, parsed.data);
-    // defensive fill for any fields added after a save was made
-    if(!state.data.skills) state.data.skills = { technical:[], core:[] };
-    if(!state.data.skills.technical) state.data.skills.technical = [];
-    if(!state.data.skills.core) state.data.skills.core = [];
-    ['experience','projects','education','certifications'].forEach(k => { if(!state.data[k]) state.data[k] = []; });
-    if(typeof state.data.jd !== 'string') state.data.jd = '';
+    if(parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) return false;
+    if(typeof parsed.font === 'string' && parsed.font) state.font = parsed.font;
+    if(parsed.data !== undefined) state.data = sanitizeResumeData(parsed.data);
     return true;
   }catch(e){ return false; }
 }
@@ -2640,7 +2679,7 @@ function resetAll(){
   state.currentStep = 0;
   state.font = 'calibri';
   state.data = {
-    personal: { name:'', title:'', email:'', phone:'', city:'', linkedin:'', portfolio:'' },
+    personal: newPersonal(),
     summary: '',
     skills: { technical: [], core: [] },
     experience: [ newExperience() ],
@@ -2718,7 +2757,7 @@ function stepShrink(node, level){
   if(nextPt === currentPt) return false; // already at floor, no more room to give
   node.dataset.fitPt = nextPt;
   bodyEls.forEach(el => { el.style.fontSize = nextPt + 'pt'; });
-  return nextPt > PRINT_FIT.FLOOR_PT || true; // apply this step; report whether another is possible below
+  return true; // applied this step (the next call returns false once the floor is reached)
 }
 
 function runAutoFit(node){

@@ -378,6 +378,19 @@
     renderPreview();
   };
 
+  // Used by extensions/data-portability.js so Export/Import JSON carries the
+  // template and accent too. ptApplyLook() validates against the known lists
+  // and does not repaint — the caller re-renders after it has set the data.
+  window.ptIsPrintFont = isPrintFont;
+  window.ptGetLook = function(){ return { template: templateId, accent: accentId }; };
+  window.ptApplyLook = function(look){
+    look = look || {};
+    if(TEMPLATES.some(t => t.id === look.template)){ templateId = look.template; lsSet(LS_TEMPLATE, templateId); }
+    if(ACCENTS.some(a => a.id === look.accent)){ accentId = look.accent; lsSet(LS_ACCENT, accentId); }
+    // Keep font and template consistent: Classic only offers the ATS-safe fonts.
+    if(!currentTemplate().print && isPrintFont(state.font)) state.font = 'calibri';
+  };
+
   // #previewPane's contents are replaced on every render, so listen once on
   // the (persistent) pane element and delegate.
   const paneEl = document.getElementById('previewPane');

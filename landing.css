@@ -55,21 +55,6 @@
   font-weight: 500;
   color: var(--muted);
 }
-.nav-link-disabled{ cursor: default; }
-
-.soon-pill{
-  font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  color: var(--muted);
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  padding: 2px 7px;
-  border-radius: 100px;
-}
-.soon-pill-inline{ margin-left: 10px; }
-
 @media (max-width: 780px){
   .nav-links{ display: none; }
 }

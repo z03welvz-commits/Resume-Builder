@@ -3,6 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Defense in depth. The page only ever needs: its own files, Google Fonts, and
+     (when AI is switched on) api.groq.com. Anything else — images, frames, forms,
+     other hosts — is blocked, so injected markup could not send resume data
+     elsewhere. 'unsafe-inline' remains for scripts because the UI still uses
+     inline onclick handlers; every user-supplied value is HTML-escaped instead. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://api.groq.com; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta name="referrer" content="no-referrer">
 <title>Free Resume Builder — built for you</title>
 <meta name="description" content="Build an ATS-safe resume in minutes. No sign-up, no watermark, real selectable-text PDF export.">
 

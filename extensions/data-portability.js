@@ -43,6 +43,7 @@
       version: 1,
       exportedAt: new Date().toISOString(),
       font: state.font,
+      ...(typeof ptGetLook === 'function' ? ptGetLook() : {}), // template + accent
       data: state.data,
     };
     downloadJSON(`${namePart}-resume.json`, envelope);
@@ -54,29 +55,20 @@
   // uses for localStorage and normalizeParsedResume() uses for a pasted
   // AI resume — so a file from an older export, or one someone hand-
   // edited and broke slightly, still loads instead of crashing the app.
+  // Type-coercion and whitelisting live in sanitizeResumeData() (app_1_.js) —
+  // the same function loadLS() uses — so a hand-edited or damaged file can
+  // never put a wrong-typed value into state. This adds only the
+  // "every repeatable section has at least one blank entry" fill.
   function normalizeImportedData(raw){
-    raw = raw || {};
-    const p = raw.personal || {};
-    const personal = {
-      name: String(p.name || ''), title: String(p.title || ''), email: String(p.email || ''),
-      phone: String(p.phone || ''), city: String(p.city || ''), linkedin: String(p.linkedin || ''),
-      portfolio: String(p.portfolio || ''),
-    };
-    const skillsRaw = raw.skills || {};
-    const skills = {
-      technical: Array.isArray(skillsRaw.technical) ? skillsRaw.technical.map(String) : [],
-      core: Array.isArray(skillsRaw.core) ? skillsRaw.core.map(String) : [],
-    };
-    const fillList = (list, factory) => (Array.isArray(list) && list.length ? list : [null]).map(item => ({ ...factory(), ...(item || {}) }));
-    return {
-      personal, summary: String(raw.summary || ''), skills,
-      experience: fillList(raw.experience, newExperience),
-      projects: fillList(raw.projects, newProject),
-      education: fillList(raw.education, newEducation),
-      certifications: fillList(raw.certifications, newCertification),
-      jd: typeof raw.jd === 'string' ? raw.jd : '',
-    };
+    const d = sanitizeResumeData(raw);
+    if(!d.experience.length) d.experience = [newExperience()];
+    if(!d.projects.length) d.projects = [newProject()];
+    if(!d.education.length) d.education = [newEducation()];
+    if(!d.certifications.length) d.certifications = [newCertification()];
+    return d;
   }
+
+  const MAX_IMPORT_BYTES = 2 * 1024 * 1024; // a real export is a few KB
 
   function commitImportedFile(parsed){
     if(!parsed || typeof parsed !== 'object' || !parsed.data || typeof parsed.data !== 'object'){
@@ -90,9 +82,13 @@
     }
 
     state.data = normalizeImportedData(parsed.data);
-    if(parsed.font && typeof SAFE_FONTS !== 'undefined' && SAFE_FONTS.some(f => f.id === parsed.font)){
-      state.font = parsed.font;
-    }
+    const fontOk = typeof parsed.font === 'string' && (
+      (typeof SAFE_FONTS !== 'undefined' && SAFE_FONTS.some(f => f.id === parsed.font)) ||
+      (typeof ptIsPrintFont === 'function' && ptIsPrintFont(parsed.font)));
+    if(fontOk) state.font = parsed.font;
+    // Template + accent (print-templates.js); absent in files exported before
+    // that extension existed, in which case the current look is kept.
+    if(typeof ptApplyLook === 'function') ptApplyLook({ template: parsed.template, accent: parsed.accent });
     state.currentStep = 0;
     saveLS();
 
@@ -111,6 +107,10 @@
       const file = input.files && input.files[0];
       input.remove();
       if(!file) return;
+      if(file.size > MAX_IMPORT_BYTES){
+        showToast("That file is too large to be a resume export from this app.", 'error');
+        return;
+      }
       const reader = new FileReader();
       reader.onload = () => {
         try{
