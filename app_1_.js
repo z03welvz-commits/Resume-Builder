@@ -2764,6 +2764,14 @@ function exportPdf(){
   live.replaceWith(placeholder);
   clone.style.width = A4_USABLE_WIDTH_PX + 'px';
   clone.style.boxSizing = 'border-box';
+  // Measure with the SAME geometry the print stylesheet will use (padding 0,
+  // min-height 0 — see the @media print rule for .page-shell-inner). Left at
+  // the screen values (44px/46px padding, min-height 297mm ≈ 1123px, taller
+  // than the 1027px usable page), fitsOnePage() could never be true, so
+  // every export — even a nearly empty resume — got squeezed to the font
+  // floor.
+  clone.style.padding = '0';
+  clone.style.minHeight = '0';
   shell.appendChild(clone);
 
   // The on-screen preview may be zoomed out to fit the pane — export
