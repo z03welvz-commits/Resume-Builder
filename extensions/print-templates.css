@@ -81,6 +81,8 @@
   color: var(--pt-ink);
   font-size: 10pt;
   line-height: 1.45;
+  overflow-wrap: break-word;          /* a long unbroken string wraps instead of running under a neighbouring column.
+                                         (Not "anywhere": that changes intrinsic sizing and inflated page counts.) */
   /* Print colour backgrounds without the browser's "Background graphics" box. */
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
@@ -107,7 +109,7 @@
 .pt-item{ margin-bottom: 9px; }
 .pt-item-compact{ margin-bottom: 4px; }
 .pt-item-head{ display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
-.pt-item-lead{ font-weight: 700; font-size: 10.5pt; line-height: 1.3; }
+.pt-item-lead{ font-weight: 700; font-size: 10.5pt; line-height: 1.3; min-width: 0; }   /* min-width:0 lets a flex title wrap */
 .pt-item-meta{ font-size: 9pt; color: var(--pt-muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .pt-item-sub{ font-size: 10pt; font-weight: 600; color: var(--pt-accent); }
 .pt-item-tech{ font-size: 9pt; color: var(--pt-muted); }
@@ -234,6 +236,107 @@
 }
 .pt-tl-nodot .pt-tl-body::before{ display: none; }
 .pt-skill-line{ font-size: 10pt; }
+
+/* ═══ MINIMAL — hanging section titles, almost no fill ═══ */
+.pt-minimal .pt-head{ padding-bottom: 14px; border-bottom: 1px solid var(--pt-tint2); }
+.pt-minimal .pt-name{ font-size: 27pt; font-weight: 300; letter-spacing: -.4px; }
+.pt-minimal .pt-jobtitle{ font-size: 12pt; color: var(--pt-accent); margin-top: 3px; letter-spacing: .02em; }
+.pt-minimal .pt-contact{ font-size: 9.5pt; color: var(--pt-muted); margin-top: 9px; }
+/* The hanging title is a float, not a grid column: Chrome will not split a
+   grid row across printed pages, which left page 1 blank on long resumes. */
+.pt-minimal .pt-sec{
+  display: flow-root;
+  margin-top: 16px;
+}
+.pt-minimal .pt-sec-title{
+  float: left;
+  width: 34mm;                         /* fits "CERTIFICATIONS" even in the wider print fonts */
+  font-size: 8.5pt; font-weight: 700; letter-spacing: .13em; text-transform: uppercase;
+  color: var(--pt-accent);
+  padding-top: 2px;
+  margin: 0 !important;               /* auto-fit rewrites title margins inline; spacing is owned here */
+}
+.pt-minimal .pt-sec-body{ margin-left: 40mm; min-width: 0; }
+.pt-minimal .pt-sec-body > :last-child{ margin-bottom: 0; }
+.pt-minimal .pt-item-sub{ font-weight: 500; }
+
+/* ═══ RAIL — pale tinted side rail, full-width header ═══ */
+.pt-rail .pt-head{ padding-bottom: 12px; position: relative; }
+.pt-rail .pt-head::after{ content: ""; display: block; width: 44px; height: 4px; margin-top: 11px; background: var(--pt-accent); border-radius: 2px; }
+.pt-rail .pt-name{ font-size: 26pt; letter-spacing: -.3px; }
+.pt-rail .pt-jobtitle{ font-size: 12.5pt; color: var(--pt-accent); margin-top: 3px; }
+.pt-rail .pt-rail-grid{
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 31%;
+  column-gap: 20px;
+  align-items: stretch;
+}
+.pt-rail .pt-rail-none{ grid-template-columns: minmax(0, 1fr); }
+.pt-rail .pt-main{ min-width: 0; }
+.pt-rail .pt-main > .pt-sec:first-child{ margin-top: 0; }
+.pt-rail .pt-sec{ margin-top: 16px; }
+.pt-rail .pt-sec-title{
+  font-size: 10pt; font-weight: 700; letter-spacing: .13em; text-transform: uppercase;
+  color: var(--pt-accent);
+  border-bottom: 1.5px solid var(--pt-tint2);
+  padding-bottom: 4px; margin: 0 0 8px;
+}
+.pt-rail .pt-rail-side{
+  background: var(--pt-tint);
+  border-radius: 6px;
+  padding: 16px 14px;
+  font-size: 9.5pt;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.pt-rail .pt-rail-sec{ margin-bottom: 15px; break-inside: avoid; }
+.pt-rail .pt-rail-sec:last-child{ margin-bottom: 0; }
+.pt-rail .pt-rail-title{
+  font-size: 8.5pt; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--pt-accent);
+  border-bottom: 1px solid var(--pt-tint2);
+  padding-bottom: 4px; margin-bottom: 8px;
+}
+.pt-rail .pt-rail-contact{ margin-bottom: 6px; line-height: 1.35; }
+.pt-rail .pt-rail-label{ display: block; font-size: 8pt; letter-spacing: .06em; text-transform: uppercase; color: var(--pt-muted); }
+.pt-rail .pt-rail-list{ list-style: none; margin: 0; padding: 0; }
+.pt-rail .pt-rail-list li{ margin-bottom: 3px; line-height: 1.35; }
+/* Entries are narrow here: stack the date under the title instead of beside it. */
+.pt-rail .pt-rail-side .pt-item{ margin-bottom: 8px; }
+.pt-rail .pt-rail-side .pt-item-head{ flex-direction: column; align-items: flex-start; gap: 0; }
+.pt-rail .pt-rail-side .pt-item-lead{ font-size: 9.5pt; }
+.pt-rail .pt-rail-side .pt-item-sub{ font-size: 9pt; }
+.pt-rail .pt-rail-side .pt-item-meta{ white-space: normal; }
+
+/* ═══ MONOGRAM — initials badge, tinted contact strip, pill section labels ═══ */
+.pt-monogram .pt-head{ display: flex; align-items: center; gap: 16px; }
+.pt-monogram .pt-mono{
+  flex: none;
+  width: 58px; height: 58px; border-radius: 50%;
+  background: var(--pt-accent); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 19pt; font-weight: 600; letter-spacing: .02em;
+}
+.pt-monogram .pt-head-text{ min-width: 0; }
+.pt-monogram .pt-name{ font-size: 24pt; letter-spacing: -.2px; }
+.pt-monogram .pt-jobtitle{ font-size: 12pt; color: var(--pt-accent); margin-top: 2px; }
+.pt-monogram .pt-contact{
+  display: flex; flex-wrap: wrap; gap: 3px 14px;
+  margin-top: 13px; padding: 8px 12px;
+  background: var(--pt-tint); border-radius: 6px;
+  font-size: 9.5pt; color: var(--pt-ink);
+}
+.pt-monogram .pt-sec{ margin-top: 16px; }
+.pt-monogram .pt-sec-title{
+  display: flex; align-items: center; gap: 10px;
+  margin: 0 0 8px;
+}
+.pt-monogram .pt-sec-title span{
+  background: var(--pt-accent); color: #fff;
+  font-size: 8.5pt; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+  line-height: 1.2; padding: 3px 12px; border-radius: 100px;
+}
+.pt-monogram .pt-sec-title::after{ content: ""; flex: 1; height: 1px; background: var(--pt-tint2); }
 
 /* ── Print ─────────────────────────────────────────────────────── */
 @media print{

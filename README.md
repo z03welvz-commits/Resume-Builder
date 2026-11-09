@@ -3,7 +3,7 @@
 A free, private resume builder that runs entirely in your browser. No account,
 no server, no build step: open `index.html` and start typing.
 
-- **Five templates** — an ATS-friendly *Classic* for online applications, and four
+- **Eight templates** — an ATS-friendly *Classic* for online applications, and seven
   colour *print* templates for physical applications.
 - **Real PDF export** — selectable text, A4, auto-fits to one page.
 - **Built-in checks** — ATS format check and a local grammar/wording checker.
@@ -29,8 +29,11 @@ nothing to install or compile.
 | **Executive** | Printed / handed-in | Centred serif header, fine rules, restrained |
 | **Banner** | Printed / handed-in | Coloured header block, accent section bars, skill chips |
 | **Timeline** | Printed / handed-in | Dates on the left, a rail with milestones |
+| **Minimal** | Printed / handed-in | Airy, section titles hang in the left margin; almost no fill, so it prints light on ink |
+| **Rail** | Printed / handed-in | Pale tinted side rail (contact, skills, education) instead of a solid panel — the low-ink alternative to Sidebar |
+| **Monogram** | Printed / handed-in | Initials badge beside the name, tinted contact strip, pill-shaped section labels |
 
-The four print templates use colour, columns and decorative fonts, so they are
+The seven print templates use colour, columns and decorative fonts, so they are
 **not ATS-optimised**. The ATS score and Format Check say so when one is selected.
 Use Classic whenever a company will run your resume through an online system.
 

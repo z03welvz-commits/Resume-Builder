@@ -7,8 +7,9 @@
    tags in index.html) returns the app to its previous behavior.
 
    What it adds
-     • Four modern templates meant for PAPER (physical applications):
-       Sidebar, Executive, Banner, Timeline. They use colour, columns
+     • Seven modern templates meant for PAPER (physical applications):
+       Sidebar, Executive, Banner, Timeline, Minimal, Rail, Monogram.
+       They use colour, columns
        and a wider choice of typefaces, so they are deliberately NOT
        ATS-optimised. "Classic" (the app's original layout) stays the
        default and is the one to use for online applications.
@@ -92,6 +93,9 @@
     executive: thumb(line(10,7,16,'#6b7280',2.4) + line(14,12,8,INK) + `<rect x="15" y="16" width="6" height="1.2" fill="${ACC}"/>` + line(5,21,26,ACC,.8) + line(5,25,26) + line(5,28,22) + line(5,34,26,ACC,.8) + line(5,38,26) + line(5,41,18)),
     banner:    thumb(`<rect x="3" y="3" width="30" height="13" rx="2" fill="${ACC}"/><rect x="6" y="6" width="14" height="2.4" rx="1" fill="#fff"/><rect x="6" y="10.5" width="9" height="1.4" rx=".7" fill="#dbe3ee"/>` + `<rect x="5" y="21" width="1.6" height="4" fill="${ACC}"/>` + line(9,22,12,ACC) + line(5,29,26) + line(5,32,22) + `<rect x="5" y="37" width="1.6" height="4" fill="${ACC}"/>` + line(9,38,12,ACC)),
     timeline:  thumb(line(5,6,16,'#6b7280',2.4) + line(5,11,10,ACC) + `<rect x="13" y="19" width="1" height="22" fill="${INK}"/><circle cx="13.5" cy="21" r="1.6" fill="${ACC}"/><circle cx="13.5" cy="32" r="1.6" fill="${ACC}"/>` + line(4,20,7,ACC) + line(17,20,15) + line(17,23,12) + line(4,31,7,ACC) + line(17,31,15) + line(17,34,11)),
+    minimal:   thumb(line(5,6,16,'#6b7280',2.4) + line(5,11,10,ACC) + line(5,19,6,ACC) + line(14,19,17) + line(14,22,14) + line(5,29,6,ACC) + line(14,29,17) + line(14,32,12) + line(5,39,6,ACC) + line(14,39,16) + line(14,42,11)),
+    rail:      thumb(line(5,6,16,'#6b7280',2.4) + line(5,11,10,ACC) + `<rect x="23" y="16" width="10" height="28" rx="1.5" fill="#e6ebf2"/>` + line(5,19,15) + line(5,22,13) + line(5,25,15) + line(5,31,15) + line(5,34,12) + line(5,37,14) + line(24.5,19,6,ACC) + line(24.5,23,7) + line(24.5,26,5) + line(24.5,33,6,ACC) + line(24.5,37,7)),
+    monogram:  thumb(`<circle cx="9.5" cy="10" r="4.8" fill="${ACC}"/>` + line(17,7,14,'#6b7280',2.4) + line(17,12,9,ACC) + `<rect x="5" y="20" width="12" height="3.2" rx="1.6" fill="${ACC}"/>` + line(5,27,26) + line(5,30,22) + `<rect x="5" y="35" width="12" height="3.2" rx="1.6" fill="${ACC}"/>` + line(5,42,26)),
   };
 
   const TEMPLATES = [
@@ -100,6 +104,9 @@
     { id:'executive', label:'Executive', sub:'Elegant serif',  print:true,  multiCol:false, defaultFont:'lora',       build:buildExecutive },
     { id:'banner',    label:'Banner',    sub:'Bold header',    print:true,  multiCol:false, defaultFont:'poppins',    build:buildBanner },
     { id:'timeline',  label:'Timeline',  sub:'Milestones', print:true, multiCol:true, defaultFont:'sourcesans', build:buildTimeline },
+    { id:'minimal',   label:'Minimal',   sub:'Airy, light ink', print:true, multiCol:false, defaultFont:'lato',       build:buildMinimal },
+    { id:'rail',      label:'Rail',      sub:'Light side rail', print:true, multiCol:true,  defaultFont:'sourcesans', build:buildRail },
+    { id:'monogram',  label:'Monogram',  sub:'Initials badge',  print:true, multiCol:false, defaultFont:'montserrat', build:buildMonogram },
   ];
   let templateId = (() => { const s = lsGet(LS_TEMPLATE); return TEMPLATES.some(t => t.id === s) ? s : 'classic'; })();
   function currentTemplate(){ return TEMPLATES.find(t => t.id === templateId) || TEMPLATES[0]; }
@@ -175,12 +182,12 @@
   function buildExecutive(c){
     const sec = (t, b) => section('pt-sec-title', t, b);
     const skillRow = (label, list) => list.length
-      ? `<div class="pt-skill-row" data-fit="body"><span class="pt-skill-label">${label}</span>${list.map(esc).join('<span class="pt-dot">·</span>')}</div>` : '';
+      ? `<div class="pt-skill-row" data-fit="body"><span class="pt-skill-label">${label}</span>${list.map(esc).join('<span class="pt-dot">·</span><wbr>')}</div>` : '';
     let h = `<header class="pt-head">
       <div class="pt-name">${esc(c.name)}</div>
       ${c.title ? `<div class="pt-jobtitle">${esc(c.title)}</div>` : ''}
       <div class="pt-rule"></div>
-      ${c.contacts.length ? `<div class="pt-contact">${c.contacts.map(([k, v]) => `<span>${contactVal(k, v)}</span>`).join('<span class="pt-dot">•</span>')}</div>` : ''}
+      ${c.contacts.length ? `<div class="pt-contact">${c.contacts.map(([k, v]) => `<span>${contactVal(k, v)}</span>`).join('<span class="pt-dot">•</span><wbr>')}</div>` : ''}
     </header>`;
     if(c.summary) h += sec('Profile', `<p class="pt-para pt-summary" data-fit="body">${esc(c.summary)}</p>`);
     if(c.exp.length) h += sec('Experience', c.exp.map(expEntry).join(''));
@@ -261,7 +268,7 @@
     let h = `<header class="pt-head">
       <div class="pt-name">${esc(c.name)}</div>
       ${c.title ? `<div class="pt-jobtitle">${esc(c.title)}</div>` : ''}
-      ${c.contacts.length ? `<div class="pt-contact">${c.contacts.map(([k, v]) => `<span>${contactVal(k, v)}</span>`).join('<span class="pt-dot">·</span>')}</div>` : ''}
+      ${c.contacts.length ? `<div class="pt-contact">${c.contacts.map(([k, v]) => `<span>${contactVal(k, v)}</span>`).join('<span class="pt-dot">·</span><wbr>')}</div>` : ''}
     </header>`;
     if(c.summary) h += section('pt-sec-title', 'Profile', `<p class="pt-para pt-summary" data-fit="body">${esc(c.summary)}</p>`);
     if(c.exp.length) h += sec('Experience', c.exp.map(e =>
@@ -272,11 +279,92 @@
       row(formatDateRange(e.start, e.end, false), body(join([e.degree, e.field ? 'in ' + e.field : ''], ' ') || e.school, join([e.degree ? e.school : '', e.location], ' · '), e.honors ? `<div class="pt-item-note">${esc(e.honors)}</div>` : ''))).join(''));
     if(c.tech.length || c.core.length){
       const rows = [];
-      if(c.tech.length) rows.push(row('Technical', `<div class="pt-skill-line" data-fit="body">${c.tech.map(esc).join('<span class="pt-dot">·</span>')}</div>`, true));
-      if(c.core.length) rows.push(row('Core', `<div class="pt-skill-line" data-fit="body">${c.core.map(esc).join('<span class="pt-dot">·</span>')}</div>`, true));
+      if(c.tech.length) rows.push(row('Technical', `<div class="pt-skill-line" data-fit="body">${c.tech.map(esc).join('<span class="pt-dot">·</span><wbr>')}</div>`, true));
+      if(c.core.length) rows.push(row('Core', `<div class="pt-skill-line" data-fit="body">${c.core.map(esc).join('<span class="pt-dot">·</span><wbr>')}</div>`, true));
       h += sec('Skills', rows.join(''));
     }
     if(c.cert.length) h += sec('Certifications', c.cert.map(x => row(formatDate(x.date), body(x.name, x.issuer, ''), !x.date)).join(''));
+    return h;
+  }
+
+  /* ════════════ TEMPLATE: MINIMAL ════════════
+     Airy, almost no fill: section titles hang in a narrow left column and
+     the content sits to their right. The DOM order is still title, then
+     content, so it reads top-to-bottom (multiCol:false). Uses very little ink. */
+  function buildMinimal(c){
+    const sec = (t, b) => `<section class="pt-sec"><div class="pt-sec-title" data-fit="section-title"><span>${esc(t)}</span></div><div class="pt-sec-body">${b}</div></section>`;
+    const skillRow = (label, list) => list.length
+      ? `<div class="pt-skill-row" data-fit="body"><span class="pt-skill-label">${label}</span>${list.map(esc).join('<span class="pt-dot">·</span><wbr>')}</div>` : '';
+    let h = `<header class="pt-head">
+      <div class="pt-name">${esc(c.name)}</div>
+      ${c.title ? `<div class="pt-jobtitle">${esc(c.title)}</div>` : ''}
+      ${c.contacts.length ? `<div class="pt-contact">${c.contacts.map(([k, v]) => `<span>${contactVal(k, v)}</span>`).join('<span class="pt-dot">|</span><wbr>')}</div>` : ''}
+    </header>`;
+    if(c.summary) h += sec('Profile', `<p class="pt-para pt-summary" data-fit="body">${esc(c.summary)}</p>`);
+    if(c.exp.length) h += sec('Experience', c.exp.map(expEntry).join(''));
+    if(c.proj.length) h += sec('Projects', c.proj.map(projEntry).join(''));
+    if(c.edu.length) h += sec('Education', c.edu.map(eduEntry).join(''));
+    if(c.tech.length || c.core.length) h += sec('Skills', skillRow('Technical', c.tech) + skillRow('Core', c.core));
+    if(c.cert.length) h += sec('Certifications', c.cert.map(certEntry).join(''));
+    return h;
+  }
+
+  /* ════════════ TEMPLATE: RAIL ════════════
+     Like Sidebar but with a pale tinted rail instead of a solid colour panel,
+     so it prints with far less ink. The header spans the full width. */
+  function buildRail(c){
+    const sec = (t, b) => section('pt-sec-title', t, b);
+    const rside = (t, b) => `<div class="pt-rail-sec"><div class="pt-rail-title" data-fit="section-title"><span>${esc(t)}</span></div>${b}</div>`;
+    const list = (items) => `<ul class="pt-rail-list" data-fit="body">${items.map(s => `<li>${esc(s)}</li>`).join('')}</ul>`;
+
+    let rail = '';
+    if(c.contacts.length){
+      rail += rside('Contact', c.contacts.map(([k, v]) =>
+        `<div class="pt-rail-contact" data-fit="body"><span class="pt-rail-label">${CONTACT_LABEL[k] || ''}</span>${contactVal(k, v)}</div>`).join(''));
+    }
+    if(c.tech.length) rail += rside('Technical Skills', list(c.tech));
+    if(c.core.length) rail += rside('Core Skills', list(c.core));
+    if(c.edu.length) rail += rside('Education', c.edu.map(eduEntry).join(''));
+    if(c.cert.length) rail += rside('Certifications', c.cert.map(certEntry).join(''));
+
+    let main = '';
+    if(c.summary) main += sec('Profile', `<p class="pt-para pt-summary" data-fit="body">${esc(c.summary)}</p>`);
+    if(c.exp.length) main += sec('Experience', c.exp.map(expEntry).join(''));
+    if(c.proj.length) main += sec('Projects', c.proj.map(projEntry).join(''));
+
+    return `<header class="pt-head">
+      <div class="pt-name">${esc(c.name)}</div>
+      ${c.title ? `<div class="pt-jobtitle">${esc(c.title)}</div>` : ''}
+    </header>
+    <div class="pt-rail-grid${rail ? '' : ' pt-rail-none'}"><div class="pt-main">${main}</div>${rail ? `<aside class="pt-rail-side">${rail}</aside>` : ''}</div>`;
+  }
+
+  /* ════════════ TEMPLATE: MONOGRAM ════════════
+     An initials badge beside the name, a tinted contact strip, and
+     pill-shaped section labels. Single column. */
+  function initials(name){
+    const parts = name.split(/\s+/).filter(Boolean);
+    const pick = parts.length > 1 ? [parts[0], parts[parts.length - 1]] : parts.slice(0, 1);
+    return pick.map(p => Array.from(p)[0].toUpperCase()).join('');
+  }
+  function buildMonogram(c){
+    const sec = (t, b) => section('pt-sec-title', t, b);
+    const skillRow = (label, list) => list.length
+      ? `<div class="pt-skill-row" data-fit="body"><span class="pt-skill-label">${label}</span>${list.map(esc).join('<span class="pt-dot">·</span><wbr>')}</div>` : '';
+    let h = `<header class="pt-head">
+      <div class="pt-mono" aria-hidden="true">${esc(initials(c.name))}</div>
+      <div class="pt-head-text">
+        <div class="pt-name">${esc(c.name)}</div>
+        ${c.title ? `<div class="pt-jobtitle">${esc(c.title)}</div>` : ''}
+      </div>
+    </header>`;
+    if(c.contacts.length) h += `<div class="pt-contact">${c.contacts.map(([k, v]) => `<span>${contactVal(k, v)}</span>`).join('')}</div>`;
+    if(c.summary) h += sec('Profile', `<p class="pt-para pt-summary" data-fit="body">${esc(c.summary)}</p>`);
+    if(c.exp.length) h += sec('Experience', c.exp.map(expEntry).join(''));
+    if(c.proj.length) h += sec('Projects', c.proj.map(projEntry).join(''));
+    if(c.edu.length) h += sec('Education', c.edu.map(eduEntry).join(''));
+    if(c.tech.length || c.core.length) h += sec('Skills', skillRow('Technical', c.tech) + skillRow('Core', c.core));
+    if(c.cert.length) h += sec('Certifications', c.cert.map(certEntry).join(''));
     return h;
   }
 
