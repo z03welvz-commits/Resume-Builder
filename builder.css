@@ -790,12 +790,52 @@ input[type="month"]{ color-scheme: light; }
   body.is-printing #atsPanelSlot{
     display: none;
   }
+  /* Blank-extra-page fix. The block above (and the visibility rules
+     below) only make things INVISIBLE or drop a few of them from flow;
+     .builder-root's screen rule min-height:100vh stayed in flow as an
+     invisible block exactly one page tall, with the resume absolutely
+     positioned on top of it. Document height was therefore always
+     >= one full page before the resume added anything, so any
+     rounding/margin difference in the browser's print dialog pushed the
+     empty shell onto a second, blank page (most visible on 1-page
+     resumes). Everything that is not the resume is now removed from
+     flow, every wrapper around the resume collapses to a plain block,
+     and the resume itself flows normally (no absolute positioning), so
+     the document is exactly as tall as the resume. */
+  body.is-printing{
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+    background: #fff;
+  }
+  body.is-printing > *:not(#builderRoot){ display: none; }
+  body.is-printing .builder-root,
+  body.is-printing .builder-layout,
+  body.is-printing .preview-pane-wrap,
+  body.is-printing .preview-pane,
+  body.is-printing .page-shell{
+    display: block;
+    position: static;
+    height: auto;
+    min-height: 0;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    background: none;
+    box-shadow: none;
+    border: 0;
+    border-radius: 0;
+  }
+  body.is-printing .builder-layout > :not(.preview-pane-wrap),
+  body.is-printing .preview-pane > :not(.page-shell){
+    display: none;
+  }
   body.is-printing *{ visibility: hidden; }
   body.is-printing .page-shell-inner,
   body.is-printing .page-shell-inner *{ visibility: visible; }
   body.is-printing .page-shell-inner{
-    position: absolute;
-    top: 0; left: 0;
+    position: static;
     background: #fff;
     padding: 0;
     box-shadow: none;
